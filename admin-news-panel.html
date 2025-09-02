@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A3URL RP - Panel Admin Actualités</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #f1f5f9;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff6b35, #dc2626);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #e2e8f0;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.5rem;
+      color: #f1f5f9;
+      font-size: 0.95rem;
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .btn {
+      padding: 0.875rem 2rem;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff6b35, #dc2626);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(75, 85, 99, 0.8);
+      color: #e5e7eb;
+      border: 1px solid rgba(156, 163, 175, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(75, 85, 99, 1);
+      transform: translateY(-1px);
+    }
+
+    .news-preview {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .type-update {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .type-event {
+      background: #8b5cf6;
+      color: white;
+    }
+
+    .type-info {
+      background: #10b981;
+      color: white;
+    }
+
+    .type-warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .type-maintenance {
+      background: #ef4444;
+      color: white;
+    }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    .priority-low {
+      background: rgba(156, 163, 175, 0.2);
+      color: #9ca3af;
+    }
+
+    .priority-medium {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+    }
+
+    .priority-high {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+    }
+
+    .priority-critical {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+
+    .output {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 0.5rem;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.875rem;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .news-list {
+      margin-top: 2rem;
+    }
+
+    .news-item {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .news-header {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .news-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .news-meta {
+      font-size: 0.875rem;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+    }
+
+    .news-content {
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      body {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎮 A3URL RP - Panel Admin Actualités</h1>
+      <p>Gérez facilement les actualités de votre serveur Roleplay</p>
+    </div>
+
+    <!-- Formulaire de création d'actualité -->
+    <div class="card">
+      <h2 style="margin-bottom: 2rem; color: #ff6b35;">📝 Créer une nouvelle actualité</h2>
+
+      <form id="newsForm">
+        <div class="form-group">
+          <label for="title">Titre de l'actualité *</label>
+          <input type="text" id="title" name="title" placeholder="Ex: Mise à jour 2.1.0" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="type">Type d'actualité *</label>
+            <select id="type" name="type" required>
+              <option value="info">📢 Information</option>
+              <option value="update">🔄 Mise à jour</option>
+              <option value="event">🎉 Événement</option>
+              <option value="warning">⚠️ Attention</option>
+              <option value="maintenance">🔧 Maintenance</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="priority">Priorité *</label>
+            <select id="priority" name="priority" required>
+              <option value="low">🔵 Faible</option>
+              <option value="medium">🟡 Moyenne</option>
+              <option value="high">🟠 Élevée</option>
+              <option value="critical">🔴 Critique</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="content">Contenu de l'actualité *</label>
+          <textarea id="content" name="content" placeholder="Décrivez votre actualité en détail..." required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="author">Auteur</label>
+            <input type="text" id="author" name="author" placeholder="Nom de l'administrateur" value="Admin A3URL">
+          </div>
+
+          <div class="form-group">
+            <label for="tags">Tags (séparés par des virgules)</label>
+            <input type="text" id="tags" name="tags" placeholder="Ex: update, véhicules, performance">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="imageUrl">URL de l'image (optionnel)</label>
+            <input type="url" id="imageUrl" name="imageUrl" placeholder="https://example.com/image.jpg">
+          </div>
+
+          <div class="form-group">
+            <label for="expiresAt">Date d'expiration (optionnel)</label>
+            <input type="datetime-local" id="expiresAt" name="expiresAt">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <h4 style="margin-bottom: 1rem; color: #e2e8f0;">Bouton d'action (optionnel)</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="actionText">Texte du bouton</label>
+              <input type="text" id="actionText" name="actionText" placeholder="Ex: Télécharger, En savoir plus">
+            </div>
+            <div class="form-group">
+              <label for="actionUrl">URL du bouton</label>
+              <input type="url" id="actionUrl" name="actionUrl" placeholder="https://example.com">
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button type="submit" class="btn btn-primary">
+            ✅ Publier l'actualité
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="previewNews()">
+            👁️ Aperçu
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="generateJSON()">
+            📄 Générer JSON
+          </button>
+        </div>
+      </form>
+
+      <!-- Aperçu -->
+      <div id="preview" class="news-preview" style="display: none;">
+        <h3 style="margin-bottom: 1rem; color: #ff6b35;">👁️ Aperçu de l'actualité</h3>
+        <div id="previewContent"></div>
+      </div>
+
+      <!-- Sortie JSON -->
+      <div id="jsonOutput" class="output" style="display: none;"></div>
+    </div>
+
+    <!-- Liste des actualités existantes -->
+    <div class="card">
+      <h2 style="margin-bottom: 2rem; color: #ff6b35;">📋 Actualités existantes</h2>
+      <div id="newsList" class="news-list">
+        <!-- Les actualités seront chargées ici -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let newsData = {
+      version: "1.0",
+      lastUpdated: Date.now(),
+      items: []
+    };
+
+    // Charger les actualités existantes depuis localStorage
+    function loadExistingNews() {
+      const stored = localStorage.getItem('a3url_news');
+      if (stored) {
+        try {
+          newsData = JSON.parse(stored);
+          displayNewsList();
+        } catch (e) {
+          console.error('Erreur chargement actualités:', e);
+        }
+      }
+    }
+
+    // Afficher la liste des actualités
+    function displayNewsList() {
+      const newsList = document.getElementById('newsList');
+      if (newsData.items.length === 0) {
+        newsList.innerHTML = '<p style="color: #94a3b8; text-align: center;">Aucune actualité pour le moment</p>';
+        return;
+      }
+
+      newsList.innerHTML = newsData.items.map(item => `
+                <div class="news-item">
+                    <div class="news-header">
+                        <div class="news-title">${item.title}</div>
+                        <div>
+                            <span class="type-badge type-${item.type}">${getTypeEmoji(item.type)} ${item.type}</span>
+                            <span class="priority-badge priority-${item.priority}">${getPriorityEmoji(item.priority)} ${item.priority}</span>
+                        </div>
+                    </div>
+                    <div class="news-meta">
+                        Par ${item.author} • ${new Date(item.publishedAt).toLocaleString('fr-FR')}
+                        ${item.expiresAt ? ` • Expire le ${new Date(item.expiresAt).toLocaleString('fr-FR')}` : ''}
+                    </div>
+                    <div class="news-content">${item.content}</div>
+                    ${item.tags.length > 0 ? `<div style="margin-top: 1rem; font-size: 0.875rem; color: #94a3b8;">Tags: ${item.tags.join(', ')}</div>` : ''}
+                    <div style="margin-top: 1rem;">
+                        <button class="btn btn-secondary" onclick="editNews('${item.id}')">✏️ Modifier</button>
+                        <button class="btn btn-secondary" onclick="deleteNews('${item.id}')" style="margin-left: 0.5rem; background: rgba(239, 68, 68, 0.2); color: #f87171;">🗑️ Supprimer</button>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    // Aperçu de l'actualité
+    function previewNews() {
+      const form = document.getElementById('newsForm');
+      const formData = new FormData(form);
+      const newsItem = createNewsItem(formData);
+
+      const preview = document.getElementById('preview');
+      const previewContent = document.getElementById('previewContent');
+
+      previewContent.innerHTML = `
+                <div class="news-item">
+                    <div class="news-header">
+                        <div class="news-title">${newsItem.title}</div>
+                        <div>
+                            <span class="type-badge type-${newsItem.type}">${getTypeEmoji(newsItem.type)} ${newsItem.type}</span>
+                            <span class="priority-badge priority-${newsItem.priority}">${getPriorityEmoji(newsItem.priority)} ${newsItem.priority}</span>
+                        </div>
+                    </div>
+                    <div class="news-meta">
+                        Par ${newsItem.author} • ${new Date(newsItem.publishedAt).toLocaleString('fr-FR')}
+                    </div>
+                    <div class="news-content">${newsItem.content}</div>
+                    ${newsItem.tags.length > 0 ? `<div style="margin-top: 1rem; font-size: 0.875rem; color: #94a3b8;">Tags: ${newsItem.tags.join(', ')}</div>` : ''}
+                    ${newsItem.actionButton ? `<div style="margin-top: 1rem;"><button class="btn btn-primary">${newsItem.actionButton.text}</button></div>` : ''}
+                </div>
+            `;
+
+      preview.style.display = 'block';
+    }
+
+    // Générer le JSON
+    function generateJSON() {
+      const output = document.getElementById('jsonOutput');
+      output.style.display = 'block';
+      output.textContent = JSON.stringify(newsData, null, 2);
+    }
+
+    // Créer un objet actualité depuis le formulaire
+    function createNewsItem(formData) {
+      const tags = formData.get('tags') ? formData.get('tags').split(',').map(t => t.trim()) : [];
+      const expiresAt = formData.get('expiresAt') ? new Date(formData.get('expiresAt')).getTime() : null;
+
+      const actionButton = formData.get('actionText') && formData.get('actionUrl') ? {
+        text: formData.get('actionText'),
+        url: formData.get('actionUrl')
+      } : null;
+
+      return {
+        id: Date.now().toString(),
+        title: formData.get('title'),
+        content: formData.get('content'),
+        author: formData.get('author') || 'Admin A3URL',
+        type: formData.get('type'),
+        priority: formData.get('priority'),
+        publishedAt: Date.now(),
+        expiresAt,
+        tags,
+        imageUrl: formData.get('imageUrl') || null,
+        actionButton
+      };
+    }
+
+    // Soumettre le formulaire
+    document.getElementById('newsForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const newsItem = createNewsItem(formData);
+
+      // Ajouter à la liste
+      newsData.items.unshift(newsItem);
+      newsData.lastUpdated = Date.now();
+
+      // Sauvegarder localement
+      localStorage.setItem('a3url_news', JSON.stringify(newsData));
+
+      // Afficher
+      displayNewsList();
+      generateJSON();
+
+      // Reset formulaire
+      e.target.reset();
+      document.getElementById('preview').style.display = 'none';
+
+      alert('✅ Actualité ajoutée ! Copiez le JSON et uploadez-le sur votre serveur.');
+    });
+
+    // Supprimer une actualité
+    function deleteNews(id) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cette actualité ?')) {
+        newsData.items = newsData.items.filter(item => item.id !== id);
+        newsData.lastUpdated = Date.now();
+        localStorage.setItem('a3url_news', JSON.stringify(newsData));
+        displayNewsList();
+        generateJSON();
+      }
+    }
+
+    // Utilitaires
+    function getTypeEmoji(type) {
+      const emojis = {
+        info: '📢',
+        update: '🔄',
+        event: '🎉',
+        warning: '⚠️',
+        maintenance: '🔧'
+      };
+      return emojis[type] || '📢';
+    }
+
+    function getPriorityEmoji(priority) {
+      const emojis = {
+        low: '🔵',
+        medium: '🟡',
+        high: '🟠',
+        critical: '🔴'
+      };
+      return emojis[priority] || '🔵';
+    }
+
+    // Charger au démarrage
+    loadExistingNews();
+  </script>
+</body>
+
+</html>
