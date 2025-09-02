@@ -1,4 +1,4 @@
-# 🎮 Arpa 3 laucnher- Serveur Roleplay Arma 3
+# 🎮 Arma 3 laucnher- Serveur Roleplay Arma 3
 
 Un launcher moderne et optimisé pour votre serveur Roleplay Arma 3 avec synchronisation intelligente des mods.
 
