@@ -13,7 +13,7 @@ Un launcher moderne et optimisé pour votre serveur Roleplay Arma 3 avec synchro
 ```bash
 # Cloner le projet
 git clone https://github.com/Joaquine-dev/arma3launcher.git
-cd AR3URL-Launcher
+cd arma3launcher
 
 # Installer les dépendances
 pnpm install
