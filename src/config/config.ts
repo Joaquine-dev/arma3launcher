@@ -41,7 +41,7 @@ export const config = {
   // 🌐 Steam Query (DÉSACTIVÉ - timeout)
   steamQuery: {
     enabled: true, // ❌ Port Query 2303 non accessible depuis l'extérieur
-    refreshInterval: 300000,
+    refreshInterval: 30000,
     timeout: 12000,
   },
 
