@@ -1,6 +1,5 @@
 import fs from "fs-extra";
 import path from "node:path";
-import { config } from "../../src/config/config";
 
 export interface NewsItem {
   id: string;

@@ -232,11 +232,6 @@ export class RconService {
     }
 
     if (this.rcon) {
-      try {
-        await this.rcon.disconnect();
-      } catch (error) {
-        console.error('Erreur fermeture RCON:', error);
-      }
       this.rcon = null;
     }
 

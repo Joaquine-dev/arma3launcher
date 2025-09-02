@@ -28,7 +28,7 @@ class ConfigCrypto {
     try {
       const key = this.generateKey();
       const iv = crypto.randomBytes(this.IV_LENGTH);
-      const cipher = crypto.createCipher(this.ALGORITHM, key);
+      const cipher = crypto.createCipheriv(this.ALGORITHM, key, iv);
 
       let encrypted = cipher.update(text, 'utf8', 'hex');
       encrypted += cipher.final('hex');
@@ -58,11 +58,7 @@ async function encryptConfigFile() {
     process.exit(1);
   }
 
-  // Backup de l'original
-  await fs.copy(configPath, configBackupPath);
-  console.log('💾 Backup sauvé: config.original.ts');
-
-  // Lire la configuration
+  // Lire la configuration AVANT de décider du backup
   let configContent = await fs.readFile(configPath, 'utf8');
 
   // Parser la config (méthode simple pour ce cas)
@@ -79,6 +75,47 @@ async function encryptConfigFile() {
   } catch (error) {
     console.error('❌ Erreur parsing config:', error);
     process.exit(1);
+  }
+
+  // Détecter si la config est déjà chiffrée
+  const isAlreadyEncrypted = Boolean(
+    configObj?._encrypted === true ||
+    (configObj?.rcon?.password && typeof configObj.rcon.password === 'string' && ConfigCrypto.isEncrypted(configObj.rcon.password))
+  );
+
+  // Gérer le backup intelligemment pour ne JAMAIS sauvegarder une version chiffrée comme original
+  if (!isAlreadyEncrypted) {
+    let shouldBackup = true;
+    if (fs.existsSync(configBackupPath)) {
+      try {
+        const backupContent = await fs.readFile(configBackupPath, 'utf8');
+        const backupMatch = backupContent.match(/export const config = ({[\s\S]*?});/);
+        if (backupMatch) {
+          const backupObj = eval(`(${backupMatch[1]})`);
+          const backupEncrypted = Boolean(
+            backupObj?._encrypted === true ||
+            (backupObj?.rcon?.password && typeof backupObj.rcon.password === 'string' && ConfigCrypto.isEncrypted(backupObj.rcon.password))
+          );
+          // Si le backup existe et n'est PAS chiffré, on ne l'écrase pas
+          // Si le backup est chiffré, on va le remplacer par la version en clair actuelle
+          shouldBackup = backupEncrypted;
+        } else {
+          // Format inconnu: on remplace pour assurer un original en clair
+          shouldBackup = true;
+        }
+      } catch {
+        // En cas d'erreur lecture/parsing, on écrase avec la version en clair courante
+        shouldBackup = true;
+      }
+    }
+
+    if (shouldBackup) {
+      await fs.copy(configPath, configBackupPath);
+      console.log('💾 Backup sauvé/mis à jour: config.original.ts');
+    }
+  } else {
+    console.log('ℹ️ Config déjà chiffrée — pas de backup, pas de re-chiffrement.');
+    return;
   }
 
   // Chiffrer les credentials sensibles

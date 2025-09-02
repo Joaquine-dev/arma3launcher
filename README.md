@@ -197,9 +197,6 @@ pnpm dev
 - ✅ Vérifiez la bande passante serveur
 - ✅ Utilisez un CDN si possible
 
-### ❌ "Toasts en doublon"
-- ✅ Déjà corrigé avec le système de debounce
-- ✅ Redémarrez l'application
 
 ## 📈 Optimisations Avancées
 
@@ -236,7 +233,7 @@ location /mods/ {
 - 🎨 **Design Arma 3** authentique avec thème RP
 - 🖱️ **Fenêtre draggable** avec contrôles personnalisés
 - 📊 **Progression en temps réel** avec ETA
-- 🔔 **Notifications toast** sans doublons
+- 🔔 **Notifications toast**
 - 📑 **Navigation par onglets** (Accueil, Serveur, Mods, Config)
 
 ### ✅ Gestion des mods :
@@ -284,14 +281,13 @@ pnpm dev
 
 ### 📞 Contacts :
 - **Développeur** : Joaquine
-- **Repo GitHub** : https://github.com/Joaquinee/AR3URL-Launcher
-- **Issues** : Utilisez GitHub Issues
+- **Repo GitHub** : https://github.com/Joaquinee/arma3launcher
+- **Discord** : joaquine
 
 ## 🎖️ Crédits
 
 - **Framework** : Electron + React + CSS
 - **Icons** : Lucide React
-- **Thème** : Inspiré d'Arma 3 officiel
 - **Optimisations** : Manifest system custom
 
 ---

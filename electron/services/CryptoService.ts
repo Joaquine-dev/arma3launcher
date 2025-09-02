@@ -58,7 +58,7 @@ export class CryptoService {
       const tag = Buffer.from(encryptedData.slice(this.IV_LENGTH * 2, (this.IV_LENGTH + this.TAG_LENGTH) * 2), 'hex');
       const encrypted = encryptedData.slice((this.IV_LENGTH + this.TAG_LENGTH) * 2);
 
-      const decipher = crypto.createDecipher(this.ALGORITHM, key);
+      const decipher = crypto.createDecipheriv(this.ALGORITHM, key, iv);
       decipher.setAuthTag(tag);
 
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');

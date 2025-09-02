@@ -1,26 +1,47 @@
 // @see - https://www.electron.build/configuration/configuration
 {
   $schema: "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  appId: "com.unreallife.launcher",
+  appId: "com.arma3.launcher",
   asar: true,
-  productName: "Unreal Life Launcher",
+  productName: "arma 3 Launcher",
   directories: {
     output: "release/${version}",
+    buildResources: "build"
   },
-  files: ["dist", "dist-electron", "src/images", "src/config", "src/news"],
+  files: [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "src/images/**/*",
+    "src/config/**/*",
+    "src/news/**/*",
+    "node_modules/**/*"
+  ],
+  extraResources: [
+    {
+      from: "src/images",
+      to: "images"
+    }
+  ],
   mac: {
-    target: ["dmg"],
+    target: [
+      {
+        target: "dmg",
+        arch: ["x64", "arm64"]
+      }
+    ],
     artifactName: "${productName}-Mac-${version}-Installer.${ext}",
+    category: "public.app-category.games"
   },
   win: {
     target: [
       {
         target: "nsis",
-        arch: ["x64"],
-      },
+        arch: ["x64"]
+      }
     ],
     artifactName: "${productName}-Windows-${version}-Setup.${ext}",
     icon: "src/images/icon.ico",
+    requestedExecutionLevel: "asInvoker"
   },
   nsis: {
     oneClick: false,
@@ -30,17 +51,29 @@
     installerIcon: "src/images/icon.ico",
     uninstallerIcon: "src/images/icon.ico",
     installerHeaderIcon: "src/images/icon.ico",
+    createDesktopShortcut: true,
+    createStartMenuShortcut: true,
+    shortcutName: "Arma 3 Launcher"
   },
   linux: {
-    target: ["AppImage"],
+    target: [
+      {
+        target: "AppImage",
+        arch: ["x64"]
+      }
+    ],
     artifactName: "${productName}-Linux-${version}.${ext}",
     icon: "src/images/icon.png",
+    category: "Game"
   },
   publish: {
     provider: "github",
-    owner: "Joaquinee",
-    repo: "AR3URL-Launcher",
+    owner: "Joaquine-dev",
+    repo: "arma3launcher",
     releaseType: "release",
-    private: false,
+    private: false
   },
+  buildDependenciesFromSource: false,
+  nodeGypRebuild: false,
+  npmRebuild: true
 }

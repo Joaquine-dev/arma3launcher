@@ -18,8 +18,8 @@ export const config = {
     description: "Serveur Roleplay français • Map Altis",
     ip: "82.29.170.30",
     port: 2302,        // Port de jeu
-    queryPort: 2302,   // Port Steam Query
-    steamPort: 2303,   // Port Steam
+    queryPort: 2303,   // Port Steam Query
+    steamPort: 2304,   // Port Steam
     maxSlots: 64,
     map: "Altis",
     gameMode: "Roleplay",

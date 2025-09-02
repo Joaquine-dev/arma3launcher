@@ -38,7 +38,7 @@ export class SteamQueryService {
       console.log(`🔍 Steam Query vers ${config.server.ip}:${queryPort}...`);
       const serverInfo = await this.queryServerInfo(config.server.ip, queryPort);
 
-      
+
 
       console.log('Info: Server info:', serverInfo);
       const ping = Date.now() - startTime;
@@ -192,7 +192,7 @@ export class SteamQueryService {
   /**
    * Query simple de la liste des joueurs
    */
-  private async queryPlayerList(ip: string, port: number): Promise<string[]> {
+  private async queryPlayerList(_ip: string, _port: number): Promise<string[]> {
     // Pour simplifier, retourner une liste vide
     // L'implémentation complète A2S_PLAYER est plus complexe
     return [];

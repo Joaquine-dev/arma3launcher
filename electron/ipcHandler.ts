@@ -47,9 +47,7 @@ async function isValidArma3Path(path: string): Promise<boolean> {
   return await fs.pathExists(`${path}\\arma3.exe`);
 }
 
-async function isValidTs3Path(path: string): Promise<boolean> {
-  return await fs.pathExists(`${path}\\package_inst.exe`);
-}
+
 
 // Envoie un message au processus de rendu
 function sendMessage(

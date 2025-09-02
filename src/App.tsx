@@ -28,6 +28,14 @@ function App() {
   const [criticalNews, setCriticalNews] = useState<any[]>([])
   const [lastToastMessage, setLastToastMessage] = useState<string>('')
 
+  // Mise à jour autoUpdater
+  const [updateVisible, setUpdateVisible] = useState<boolean>(false)
+  const [updateMessage, setUpdateMessage] = useState<string>('')
+  const [updatePercent, setUpdatePercent] = useState<number>(0)
+  const [updateSpeed, setUpdateSpeed] = useState<number>(0)
+  const [updateTransferred, setUpdateTransferred] = useState<number>(0)
+  const [updateTotal, setUpdateTotal] = useState<number>(0)
+
   useEffect(() => {
     const handleMessage = (_e: any, payload: any) => {
       const { message, success, error, data, fileProgress, timeRemaining } = payload
@@ -205,6 +213,60 @@ function App() {
     }
   }, [lastToastMessage])
 
+  // Événements d'auto‑mise à jour
+  useEffect(() => {
+    const onChecking = () => {
+      setUpdateVisible(true)
+      setUpdateMessage('Recherche de mise à jour...')
+      setUpdatePercent(0)
+    }
+    const onAvailable = () => {
+      setUpdateVisible(true)
+      setUpdateMessage('Mise à jour disponible — téléchargement en cours...')
+    }
+    const onProgress = (_e: any, data: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => {
+      const percent = Math.round(Number(data?.percent || 0))
+      setUpdatePercent(percent)
+      setUpdateTransferred(Number(data?.transferred || 0))
+      setUpdateTotal(Number(data?.total || 0))
+      setUpdateSpeed(Number(data?.bytesPerSecond || 0))
+      setUpdateVisible(true)
+      setUpdateMessage('Téléchargement de la mise à jour...')
+    }
+    const onReady = () => {
+      setUpdateVisible(true)
+      setUpdatePercent(100)
+      setUpdateMessage('Mise à jour téléchargée — redémarrage imminent...')
+    }
+    const onNotAvailable = () => {
+      setUpdateVisible(false)
+      setUpdatePercent(0)
+      setUpdateMessage('')
+    }
+    const onError = (_e: any, msg?: string) => {
+      toast.error('❌ ' + (msg || 'Erreur de mise à jour'))
+      setUpdateVisible(false)
+      setUpdatePercent(0)
+      setUpdateMessage('')
+    }
+
+    window.ipcRenderer.on('checking-update', onChecking)
+    window.ipcRenderer.on('update-available', onAvailable)
+    window.ipcRenderer.on('update-progress', onProgress as any)
+    window.ipcRenderer.on('update-ready', onReady)
+    window.ipcRenderer.on('update-not-available', onNotAvailable)
+    window.ipcRenderer.on('update-error', onError as any)
+
+    return () => {
+      window.ipcRenderer.off('checking-update', onChecking)
+      window.ipcRenderer.off('update-available', onAvailable)
+      window.ipcRenderer.off('update-progress', onProgress as any)
+      window.ipcRenderer.off('update-ready', onReady)
+      window.ipcRenderer.off('update-not-available', onNotAvailable)
+      window.ipcRenderer.off('update-error', onError as any)
+    }
+  }, [])
+
   const handleLocate = async () => {
     setState('locating')
     window.ipcRenderer.send('locate-arma3')
@@ -271,6 +333,33 @@ function App() {
 
   return (
     <div className="min-h-screen relative overflow-hidden scan-lines">
+      {updateVisible && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-md card-military p-6 border border-orange-600/30">
+            <div className="flex items-center space-x-3 mb-4">
+              <Download className="w-6 h-6 text-orange-400 animate-bounce" />
+              <h3 className="text-lg font-bold text-orange-200">Mise à jour en cours</h3>
+            </div>
+            <p className="text-sm text-gray-300 mb-4">{updateMessage}</p>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Progression</span>
+                <span className="text-white font-mono">{updatePercent}%</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${updatePercent}%` }} />
+              </div>
+              {(updateTotal > 0) && (
+                <div className="text-xs text-gray-400 flex justify-between">
+                  <span>{(updateTransferred / 1024 / 1024).toFixed(1)} / {(updateTotal / 1024 / 1024).toFixed(1)} Mo</span>
+                  <span>{(updateSpeed / 1024 / 1024).toFixed(1)} Mo/s</span>
+                </div>
+              )}
+              <div className="text-xs text-gray-500">L'application redémarrera automatiquement une fois prête.</div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Barre de titre personnalisée avec drag */}
       <div
         className="fixed top-0 left-0 right-0 h-8 bg-black/60 backdrop-blur-sm border-b border-orange-600/20 z-50 flex items-center justify-between px-4"
@@ -487,6 +576,9 @@ function HomeTab({
   news: any[]
   criticalNews: any[]
 }) {
+  // Éviter les doublons: retirer les actualités critiques de la liste générale
+  const criticalIds = new Set((criticalNews || []).map((n: any) => n.id))
+  const filteredNews = (news || []).filter((n: any) => !criticalIds.has(n.id))
   return (
     <div className="space-y-6">
       {/* Bannière serveur */}
@@ -578,7 +670,8 @@ function HomeTab({
           <span>Actualités du serveur</span>
         </h3>
         <div className="space-y-4">
-          {news.length > 0 ? news.slice(0, 5).map((item, i) => (
+          {filteredNews.length > 0 ? filteredNews.slice(0, 5).map((item, i) => (
+
             <div key={i} className={`border-l-4 pl-4 ${getNewsBorderColor(item.type)}`}>
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center space-x-2">
@@ -629,7 +722,7 @@ function ServersTab({
   serverName,
   serverMap,
   serverPing,
-  hasRconData
+  hasRconData: _hasRconData
 }: {
   serverStatus: string
   playerCount: number
