@@ -46,7 +46,6 @@ function App() {
       if (message === 'arma3Path-ready' || message === 'arma3Path-mod-loaded') {
         setState('ready')
         setLastToastMessage(toastKey)
-        toast.success('✅ ' + (success || 'Arma 3 détecté'), { id: 'arma3-ready' })
         setTimeout(() => setLastToastMessage(''), 1000)
       }
       if (message === 'arma3Path-not-loaded' || message === 'arma3Path-invalid') {
@@ -75,7 +74,6 @@ function App() {
 
         if (lastToastMessage !== toastKey) {
           setLastToastMessage(toastKey)
-          toast.success('✅ ' + (success || 'Mods à jour'), { id: 'mods-check' })
           setTimeout(() => setLastToastMessage(''), 1000)
         }
       }
@@ -120,6 +118,15 @@ function App() {
           toast.error('❌ ' + (error || 'Erreur de téléchargement'), { id: 'download-error' })
           setTimeout(() => setLastToastMessage(''), 1000)
         }
+      }
+      if (message === 'tfar-install-start') {
+        toast.loading('📦 Installation TFAR...', { id: 'tfar-install' })
+      }
+      if (message === 'tfar-install-success') {
+        toast.success('✅ ' + (success || 'TFAR installé'), { id: 'tfar-install' })
+      }
+      if (message === 'tfar-install-error') {
+        toast.error('❌ ' + (error || 'Erreur installation TFAR'), { id: 'tfar-install' })
       }
       if (message === 'launch-game-success') {
         if (lastToastMessage !== toastKey) {
@@ -526,6 +533,7 @@ function App() {
             serverMap={serverMap}
             serverPing={serverPing}
             hasRconData={hasRconData}
+            modsStatus={modsStatus}
             onConnect={() => window.ipcRenderer.invoke('connect-server')}
           />}
           {activeTab === 'mods' && <ModsTab
@@ -561,6 +569,7 @@ function HomeTab({
   serverFps,
   serverUptime,
   hasRconData,
+  modsStatus,
   news,
   criticalNews,
   onConnect
@@ -583,6 +592,7 @@ function HomeTab({
   // Éviter les doublons: retirer les actualités critiques de la liste générale
   const criticalIds = new Set((criticalNews || []).map((n: any) => n.id))
   const filteredNews = (news || []).filter((n: any) => !criticalIds.has(n.id))
+  const canConnect = serverStatus === 'online' && modsStatus === 'synced'
   return (
     <div className="space-y-6">
       {/* Bannière serveur */}
@@ -632,14 +642,15 @@ function HomeTab({
                   {hasRconData && serverUptime !== '0:00:00' && (
                     <div className="text-xs text-gray-400 mt-1">Uptime: {serverUptime}</div>
                   )}
-                  <button
-                    onClick={onConnect}
-                    disabled={serverStatus !== 'online'}
-                    className="btn-join btn-join-sm mt-3"
-                  >
-                    <Play className="w-4 h-4" />
-                    <span>Se connecter</span>
-                  </button>
+                  {canConnect && (
+                    <button
+                      onClick={onConnect}
+                      className="btn-join btn-join-sm mt-3"
+                    >
+                      <Play className="w-4 h-4" />
+                      <span>Se connecter</span>
+                    </button>
+                  )}
                 </>
               ) : (
                 <>
@@ -735,6 +746,7 @@ function ServersTab({
   serverMap,
   serverPing,
   hasRconData: _hasRconData,
+  modsStatus,
   onConnect
 }: {
   serverStatus: string
@@ -744,6 +756,7 @@ function ServersTab({
   serverMap: string
   serverPing: number
   hasRconData: boolean
+  modsStatus: 'synced' | 'outdated' | 'downloading'
   onConnect: () => void
 }) {
   return (
@@ -769,13 +782,15 @@ function ServersTab({
                 <div className="text-green-400 font-bold text-xl">{serverPing}ms</div>
                 <div className="text-xs text-gray-400">Latence</div>
                 <div className="text-green-400 font-medium text-sm mt-1">{playerCount}/{maxPlayers} joueurs</div>
-                <button
-                  onClick={onConnect}
-                  className="btn-join btn-join-sm mt-3"
-                >
-                  <Play className="w-4 h-4" />
-                  <span>Se connecter</span>
-                </button>
+                {modsStatus === 'synced' && (
+                  <button
+                    onClick={onConnect}
+                    className="btn-join btn-join-sm mt-3"
+                  >
+                    <Play className="w-4 h-4" />
+                    <span>Se connecter</span>
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -818,97 +833,99 @@ function ModsTab({ state, progress, fileProgress, fileName, eta, modsStatus, onD
   return (
     <div className="space-y-6">
       {/* Statut des mods */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-200 flex items-center space-x-2">
-            <Download className="w-5 h-5 text-blue-400" />
-            <span>Synchronisation des mods</span>
-          </h3>
-          <div className="flex items-center space-x-3">
-            <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium ${modsStatus === 'synced' ? 'bg-green-900/30 text-green-400 border border-green-600/30' :
-              modsStatus === 'downloading' ? 'bg-blue-900/30 text-blue-400 border border-blue-600/30' :
-                'bg-orange-900/30 text-orange-400 border border-orange-600/30'
-              }`}>
-              {modsStatus === 'synced' && <CheckCircle className="w-3 h-3" />}
-              {modsStatus === 'downloading' && <Download className="w-3 h-3 animate-bounce" />}
-              {modsStatus === 'outdated' && <AlertCircle className="w-3 h-3" />}
-              <span>
-                {modsStatus === 'synced' && 'Synchronisé'}
-                {modsStatus === 'downloading' && 'Téléchargement...'}
-                {modsStatus === 'outdated' && (state === 'checking' ? 'Vérification...' : 'Désynchronisé')}
-              </span>
-            </div>
-            <button
-              onClick={onRefresh}
-              disabled={state === 'downloading' || state === 'checking'}
-              className="btn-secondary"
-              title="Vérifier les mises à jour"
-            >
-              <CheckCircle className={`w-5 h-5 ${state === 'checking' ? 'animate-spin' : ''}`} />
-              <span>{state === 'checking' ? 'Vérification...' : 'Vérifier'}</span>
-            </button>
-
-            {modsStatus === 'synced' || (state === 'checking' && modsStatus !== 'outdated') ? (
-              <div className="flex items-center space-x-2 px-4 py-2 bg-green-900/20 text-green-400 border border-green-600/30 rounded-lg">
-                <CheckCircle className={`w-5 h-5 ${state === 'checking' ? 'animate-pulse' : ''}`} />
-                <span className="font-medium">{state === 'checking' ? 'Vérification...' : 'À jour'}</span>
+      <div className="relative overflow-hidden rounded-2xl card-military border border-orange-600/30 shadow-2xl max-w-3xl mx-auto">
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px)'
+          }}
+        />
+        <div className="relative p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-10 h-10 arma-gradient rounded-full border border-orange-500/40 shadow-lg pulse-glow">
+                <Download className="w-5 h-5 text-white" />
               </div>
-            ) : (
+              <div className="min-w-0">
+                <h3 className="text-2xl font-bold text-orange-100 leading-tight truncate">Synchronisation des mods</h3>
+                <p className="text-orange-200/70 text-xs">Gérez et mettez à jour vos mods Arma 3</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-start md:justify-end gap-2 w-full md:w-auto">
+              <div className={`shrink-0 flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium ${modsStatus === 'synced' ? 'bg-green-900/30 text-green-400 border border-green-600/30' :
+                modsStatus === 'downloading' ? 'bg-blue-900/30 text-blue-400 border border-blue-600/30' :
+                  'bg-orange-900/30 text-orange-400 border border-orange-600/30'
+                }`}>
+                {modsStatus === 'synced' && <CheckCircle className="w-3 h-3" />}
+                {modsStatus === 'downloading' && <Download className="w-3 h-3 animate-bounce" />}
+                {modsStatus === 'outdated' && <AlertCircle className="w-3 h-3" />}
+                <span>
+                  {modsStatus === 'synced' && 'Synchronisé'}
+                  {modsStatus === 'downloading' && 'Téléchargement...'}
+                  {modsStatus === 'outdated' && (state === 'checking' ? 'Vérification...' : 'Désynchronisé')}
+                </span>
+              </div>
               <button
-                onClick={onDownload}
+                onClick={onRefresh}
                 disabled={state === 'downloading' || state === 'checking'}
-                className="btn-success"
+                className="btn-secondary shrink-0"
+                title="Vérifier les mises à jour"
               >
-                <Download className={`w-5 h-5 ${state === 'downloading' ? 'animate-bounce' : ''}`} />
-                <span>{state === 'downloading' ? 'Synchronisation...' : 'Synchroniser'}</span>
+                <CheckCircle className={`w-5 h-5 ${state === 'checking' ? 'animate-spin' : ''}`} />
+                <span>{state === 'checking' ? 'Vérification...' : 'Vérifier'}</span>
               </button>
-            )}
+
+              {modsStatus === 'synced' || (state === 'checking' && modsStatus !== 'outdated') ? (
+                <div className="shrink-0 flex items-center space-x-2 px-4 py-2 bg-green-900/20 text-green-400 border border-green-600/30 rounded-lg">
+                  <CheckCircle className={`w-5 h-5 ${state === 'checking' ? 'animate-pulse' : ''}`} />
+                  <span className="font-medium">{state === 'checking' ? 'Vérification...' : 'À jour'}</span>
+                </div>
+              ) : (
+                <button
+                  onClick={onDownload}
+                  disabled={state === 'downloading' || state === 'checking'}
+                  className="btn-success shrink-0"
+                >
+                  <Download className={`w-5 h-5 ${state === 'downloading' ? 'animate-bounce' : ''}`} />
+                  <span>{state === 'downloading' ? 'Synchronisation...' : 'Synchroniser'}</span>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Progression */}
-        {(progress > 0 || state === 'downloading' || fileName) && (
-          <div className="space-y-4 mb-6">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-300">Progression globale</span>
-              <span className="text-white font-mono">{progress}%</span>
-            </div>
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-
-            {fileName && (
-              <div className="space-y-2 p-3 rounded bg-gray-800/50">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400 truncate">{fileName}</span>
-                  <span className="text-gray-300">{fileProgress}%</span>
-                </div>
-                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-400 rounded-full transition-all duration-300"
-                    style={{ width: `${fileProgress}%` }}
-                  />
-                </div>
-                {eta && <div className="text-xs text-gray-400">Temps restant: {eta}</div>}
+          {/* Progression */}
+          {(progress > 0 || state === 'downloading' || fileName) && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-orange-200/90">Progression globale</span>
+                <span className="text-white font-mono">{progress}%</span>
               </div>
-            )}
-          </div>
-        )}
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
 
-        {/* Liste des mods */}
-        <div className="space-y-4">
-          <div className="p-4 bg-gray-800/30 rounded-lg">
-            <h4 className="font-medium text-gray-300 mb-3">Méthode de téléchargement</h4>
-            <div className="text-sm text-gray-400 space-y-2">
-              <p>• <span className="text-blue-400">HTTPS/FTP</span> - Téléchargement direct depuis le serveur</p>
-              <p>• <span className="text-green-400">Vérification d'intégrité</span> - Contrôle SHA-256 automatique</p>
-              <p>• <span className="text-purple-400">Reprise de téléchargement</span> - Reprend en cas d'interruption</p>
+              {fileName && (
+                <div className="space-y-2 p-3 rounded bg-gray-800/50 border border-gray-700/50">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-300 truncate">{fileName}</span>
+                    <span className="text-gray-200">{fileProgress}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-400 rounded-full transition-all duration-300"
+                      style={{ width: `${fileProgress}%` }}
+                    />
+                  </div>
+                  {eta && <div className="text-xs text-gray-400">Temps restant: {eta}</div>}
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
+        <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-orange-600/50 via-red-500/50 to-yellow-500/50 opacity-60" />
       </div>
     </div>
   )
@@ -947,16 +964,25 @@ function SettingsTab({ arma3Path, onLocate, onLaunch, state }: {
               </button>
             </div>
           </div>
+          <div className="pt-2 border-t border-gray-700/50">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={async () => {
+                  try {
+                    await window.ipcRenderer.invoke('install-tfar')
+                  } catch (e) {
+                    // no-op, le main enverra des toasts via messages
+                  }
+                }}
+                className="btn-secondary"
+                title="Installer le plugin TeamSpeak TFAR"
+              >
+                <Download className="w-5 h-5" />
+                <span>Installer TFAR</span>
+              </button>
 
-          <div className="pt-4 border-t border-gray-700/50">
-            <button
-              onClick={onLaunch}
-              disabled={state === 'launching' || !arma3Path}
-              className="btn-join w-full"
-            >
-              <Play className={`w-6 h-6 ${state === 'launching' ? 'animate-pulse' : ''}`} />
-              <span>{state === 'launching' ? 'Lancement en cours...' : `Rejoindre ${config.server.shortName}`}</span>
-            </button>
+
+            </div>
           </div>
         </div>
       </div>

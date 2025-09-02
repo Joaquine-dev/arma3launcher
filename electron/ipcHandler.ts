@@ -402,6 +402,98 @@ export function setupIpcHandlers(win: BrowserWindow) {
     return null;
   });
 
+  // Installation du plugin TFAR (TeamSpeak)
+  ipcMain.handle("install-tfar", async () => {
+    const arma3Path = store.get("arma3Path") as string | null;
+    if (!arma3Path) {
+      sendMessage(win, "tfar-install-error", undefined, "Chemin Arma 3 non trouvé");
+      return { ok: false };
+    }
+
+    try {
+      sendMessage(win, "tfar-install-start", "Installation du plugin TFAR...");
+
+      // Chercher les dossiers/plugins TFAR possibles
+      const candidates = [
+        path.join(arma3Path, "@task_force_radio", "teamspeak", "plugins"),
+        path.join(arma3Path, "@TaskForceRadio", "teamspeak", "plugins"),
+        path.join(arma3Path, "@tfar", "teamspeak", "plugins"),
+        path.join(arma3Path, config.mods.folderName, "teamspeak", "plugins"),
+      ];
+
+      // Chercher un fichier .ts3_plugin si existant
+      const ts3PluginCandidates = [
+        path.join(arma3Path, "@task_force_radio", "teamspeak"),
+        path.join(arma3Path, "@TaskForceRadio", "teamspeak"),
+        path.join(arma3Path, "@tfar", "teamspeak"),
+        path.join(arma3Path, config.mods.folderName, "teamspeak"),
+      ];
+
+      for (const dir of ts3PluginCandidates) {
+        if (await fs.pathExists(dir)) {
+          const files = await fs.readdir(dir);
+          const plugin = files.find((f) => f.toLowerCase().endsWith(".ts3_plugin"));
+          if (plugin) {
+            const fullPath = path.join(dir, plugin);
+            const result = await shell.openPath(fullPath);
+            if (result) {
+              // shell.openPath renvoie une chaîne vide en cas de succès, sinon message d'erreur
+              sendMessage(win, "tfar-install-error", undefined, result);
+              return { ok: false };
+            }
+            sendMessage(win, "tfar-install-success", "TFAR installé via le paquet .ts3_plugin");
+            return { ok: true };
+          }
+        }
+      }
+
+      // Sinon, copier les .dll depuis le dossier plugins TFAR vers TeamSpeak
+      let sourcePluginsDir: string | null = null;
+      for (const c of candidates) {
+        if (await fs.pathExists(c)) {
+          sourcePluginsDir = c;
+          break;
+        }
+      }
+
+      if (!sourcePluginsDir) {
+        sendMessage(win, "tfar-install-error", undefined, "Fichiers TFAR introuvables (teamspeak/plugins)");
+        return { ok: false };
+      }
+
+      const appData = process.env.APPDATA || null;
+      if (!appData) {
+        sendMessage(win, "tfar-install-error", undefined, "Variable APPDATA introuvable");
+        return { ok: false };
+      }
+      const tsPluginsDir = path.join(appData, "TS3Client", "plugins");
+      await fs.ensureDir(tsPluginsDir);
+
+      const files = await fs.readdir(sourcePluginsDir);
+      const pluginFiles = files.filter((f) => /\.dll$/i.test(f));
+      if (pluginFiles.length === 0) {
+        sendMessage(win, "tfar-install-error", undefined, "Aucun fichier plugin .dll trouvé pour TFAR");
+        return { ok: false };
+      }
+
+      for (const f of pluginFiles) {
+        await fs.copy(path.join(sourcePluginsDir, f), path.join(tsPluginsDir, f), { overwrite: true });
+      }
+
+      sendMessage(win, "tfar-install-success", "Plugin TFAR installé dans TeamSpeak");
+      return { ok: true };
+    } catch (error) {
+      console.error("Erreur installation TFAR:", error);
+      sendMessage(
+        win,
+        "tfar-install-error",
+        undefined,
+        error instanceof Error ? error.message : "Erreur inconnue"
+      );
+      return { ok: false };
+    }
+  });
+
   // Ouvrir un lien dans le navigateur
   ipcMain.handle("open-url", async (_, url) => {
     shell.openExternal(url);
@@ -416,95 +508,7 @@ export function setupIpcHandlers(win: BrowserWindow) {
     win.minimize();
   });
 
-  // Gestionnaire de téléchargement des mods OPTIMISÉ
-  ipcMain.on("download-mods", async () => {
-    const arma3Path = store.get("arma3Path") as string | null;
-    if (!arma3Path) {
-      sendMessage(win, "download-error", undefined, "Chemin Arma 3 non trouvé");
-      return;
-    }
 
-    const modPath = `${arma3Path}\\${config.mods.folderName}`;
-    const addonsPath = `${modPath}\\addons`;
-
-    try {
-      await fs.ensureDir(addonsPath);
-      sendMessage(win, "download-start");
-
-      // Utiliser le système Manifest pour téléchargement optimisé
-      const manifestService = new ManifestService(config.mods.manifestUrl, modPath);
-      const delta = await manifestService.calculateDelta(addonsPath);
-
-      if (delta.toDownload.length === 0) {
-        sendMessage(win, "download-complete", "Mods déjà à jour");
-        return;
-      }
-
-      const totalSize = delta.totalDownloadSize;
-      let downloadedSize = 0;
-      const startTime = Date.now();
-      let lastProgressUpdate = 0;
-
-      // Téléchargement avec progression en temps réel
-      for (const fileToDownload of delta.toDownload) {
-        const destination = path.join(addonsPath, fileToDownload.name);
-        let lastBytesForThisFile = 0;
-
-        await downloadFileWithResume(
-          `${config.mods.urlMods}/${fileToDownload.name}`,
-          destination,
-          (p) => {
-            const bytesForThisFile = Math.floor((fileToDownload.size || 0) * (p.percent / 100));
-            const deltaBytes = Math.max(0, bytesForThisFile - lastBytesForThisFile);
-            lastBytesForThisFile = bytesForThisFile;
-            downloadedSize = Math.min(totalSize, downloadedSize + deltaBytes);
-
-            const elapsedTime = (Date.now() - startTime) / 1000;
-            const downloadSpeed = downloadedSize / Math.max(elapsedTime, 0.001);
-            const remainingSize = Math.max(0, totalSize - downloadedSize);
-            const estimatedTimeRemaining = Math.round(remainingSize / Math.max(downloadSpeed, 1));
-            const minutes = Math.floor(estimatedTimeRemaining / 60);
-            const seconds = Math.round(estimatedTimeRemaining % 60);
-            const timeRemaining = `${minutes}m ${seconds}s`;
-
-            const globalProgress = totalSize > 0 ? Math.round((downloadedSize / totalSize) * 100) : 0;
-            const fileProgress = Math.round(p.percent);
-
-            if (Date.now() - lastProgressUpdate > 1000) {
-              sendMessage(
-                win,
-                "download-progress",
-                globalProgress.toString(),
-                undefined,
-                fileToDownload.name,
-                fileProgress.toString(),
-                timeRemaining
-              );
-              lastProgressUpdate = Date.now();
-            }
-          },
-          fileToDownload.hash
-        );
-      }
-
-      // Sauvegarder le nouveau manifest local
-      const serverManifest = await manifestService.fetchServerManifest();
-      if (serverManifest) {
-        await manifestService.saveLocalManifest(serverManifest);
-      }
-
-      sendMessage(win, "download-complete", "Mods synchronisés avec succès");
-      sendMessage(win, "arma3Path-mod-loaded", "Jeu prêt à être lancé");
-    } catch (error) {
-      console.error("Erreur lors de la synchronisation des mods:", error);
-      sendMessage(
-        win,
-        "download-error",
-        undefined,
-        error instanceof Error ? error.message : "Erreur inconnue"
-      );
-    }
-  });
 }
 
 // Vérification optimisée des mods avec Manifest

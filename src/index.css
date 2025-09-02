@@ -1343,6 +1343,66 @@ input[type="checkbox"]:checked {
   z-index: -10;
 }
 
+/* Utilities additionnels pour mise en page de la carte Mods */
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.w-auto {
+  width: auto;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.max-w-3xl {
+  max-width: 48rem;
+}
+
+.rounded-2xl {
+  border-radius: 1rem;
+}
+
+.pointer-events-none {
+  pointer-events: none;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.shrink-0 {
+  flex-shrink: 0;
+}
+
+/* Responsive helpers */
+@media (min-width: 768px) {
+  .md\:flex-row {
+    flex-direction: row;
+  }
+
+  .md\:items-center {
+    align-items: center;
+  }
+
+  .md\:justify-between {
+    justify-content: space-between;
+  }
+
+  .md\:justify-end {
+    justify-content: flex-end;
+  }
+
+  .md\:p-8 {
+    padding: 2rem;
+  }
+
+  .md\:w-auto {
+    width: auto;
+  }
+}
+
 /* Position */
 .fixed {
   position: fixed;
