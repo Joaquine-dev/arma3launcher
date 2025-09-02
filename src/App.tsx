@@ -516,6 +516,7 @@ function App() {
             modsStatus={modsStatus}
             news={news}
             criticalNews={criticalNews}
+            onConnect={() => window.ipcRenderer.invoke('connect-server')}
           />}
           {activeTab === 'servers' && <ServersTab
             serverStatus={serverStatus}
@@ -525,6 +526,7 @@ function App() {
             serverMap={serverMap}
             serverPing={serverPing}
             hasRconData={hasRconData}
+            onConnect={() => window.ipcRenderer.invoke('connect-server')}
           />}
           {activeTab === 'mods' && <ModsTab
             state={state}
@@ -560,7 +562,8 @@ function HomeTab({
   serverUptime,
   hasRconData,
   news,
-  criticalNews
+  criticalNews,
+  onConnect
 }: {
   arma3Path: string | null
   serverStatus: string
@@ -575,6 +578,7 @@ function HomeTab({
   modsStatus: 'synced' | 'outdated' | 'downloading'
   news: any[]
   criticalNews: any[]
+  onConnect: () => void
 }) {
   // Éviter les doublons: retirer les actualités critiques de la liste générale
   const criticalIds = new Set((criticalNews || []).map((n: any) => n.id))
@@ -628,6 +632,14 @@ function HomeTab({
                   {hasRconData && serverUptime !== '0:00:00' && (
                     <div className="text-xs text-gray-400 mt-1">Uptime: {serverUptime}</div>
                   )}
+                  <button
+                    onClick={onConnect}
+                    disabled={serverStatus !== 'online'}
+                    className="btn-join btn-join-sm mt-3"
+                  >
+                    <Play className="w-4 h-4" />
+                    <span>Se connecter</span>
+                  </button>
                 </>
               ) : (
                 <>
@@ -722,7 +734,8 @@ function ServersTab({
   serverName,
   serverMap,
   serverPing,
-  hasRconData: _hasRconData
+  hasRconData: _hasRconData,
+  onConnect
 }: {
   serverStatus: string
   playerCount: number
@@ -731,6 +744,7 @@ function ServersTab({
   serverMap: string
   serverPing: number
   hasRconData: boolean
+  onConnect: () => void
 }) {
   return (
     <div className="space-y-6">
@@ -755,6 +769,13 @@ function ServersTab({
                 <div className="text-green-400 font-bold text-xl">{serverPing}ms</div>
                 <div className="text-xs text-gray-400">Latence</div>
                 <div className="text-green-400 font-medium text-sm mt-1">{playerCount}/{maxPlayers} joueurs</div>
+                <button
+                  onClick={onConnect}
+                  className="btn-join btn-join-sm mt-3"
+                >
+                  <Play className="w-4 h-4" />
+                  <span>Se connecter</span>
+                </button>
               </div>
             </div>
           ) : (
@@ -937,25 +958,6 @@ function SettingsTab({ arma3Path, onLocate, onLaunch, state }: {
               <span>{state === 'launching' ? 'Lancement en cours...' : `Rejoindre ${config.server.shortName}`}</span>
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Paramètres de jeu */}
-      <div className="card">
-        <h4 className="font-semibold text-gray-200 mb-4">Paramètres de lancement</h4>
-        <div className="space-y-3">
-          <label className="flex items-center space-x-3">
-            <input type="checkbox" className="rounded bg-gray-700 border-gray-600" defaultChecked />
-            <span className="text-gray-300">Ignorer l'intro</span>
-          </label>
-          <label className="flex items-center space-x-3">
-            <input type="checkbox" className="rounded bg-gray-700 border-gray-600" defaultChecked />
-            <span className="text-gray-300">Mode fenêtré</span>
-          </label>
-          <label className="flex items-center space-x-3">
-            <input type="checkbox" className="rounded bg-gray-700 border-gray-600" />
-            <span className="text-gray-300">Mode développeur</span>
-          </label>
         </div>
       </div>
     </div>

@@ -16,10 +16,10 @@ export const config = {
     name: "Arma 3 Roleplay Server",
     shortName: "Arma RP",
     description: "Serveur Roleplay français • Map Altis",
-    ip: "82.29.170.30",
+    ip: "188.165.200.136",
     port: 2302,        // Port de jeu
-    queryPort: 2302,   // Port Steam Query
-    steamPort: 2303,   // Port Steam
+    queryPort: 2303,   // Port Steam Query
+    steamPort: 2304,   // Port Steam
     maxSlots: 64,
     map: "Altis",
     gameMode: "Roleplay",
@@ -38,21 +38,11 @@ export const config = {
     manifestUrl: "http://82.29.170.30/mods/manifest.json",
   },
 
-  // 🔌 Configuration RCON (DÉSACTIVÉ - ports non accessibles)
-  rcon: {
-    enabled: true, // ❌ Ports 2303/2304 bloqués par firewall/réseau
-    host: "82.29.170.30",
-    port: 2303,
-    password: "votre-mot-de-passe-rcon",
-    timeout: 5000,
-    reconnectInterval: 30000,
-  },
-
   // 🌐 Steam Query (DÉSACTIVÉ - timeout)
   steamQuery: {
-    enabled: false, // ❌ Port Query 2303 non accessible depuis l'extérieur
-    refreshInterval: 15000,
-    timeout: 5000,
+    enabled: true, // ❌ Port Query 2303 non accessible depuis l'extérieur
+    refreshInterval: 300000,
+    timeout: 12000,
   },
 
   // 📰 Configuration des nouvelles (JSON moderne)

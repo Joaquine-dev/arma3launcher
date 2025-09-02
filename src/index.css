@@ -922,6 +922,17 @@ body {
   transform: translateY(-2px) scale(1.02);
 }
 
+/* Variante compacte du bouton rejoindre */
+.btn-join-sm {
+  padding: 0.6rem 1.2rem;
+  margin-top: 1rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  gap: 0.5rem;
+  letter-spacing: 0.5px;
+}
+
 /* Cards */
 .card {
   border-radius: 0.75rem;

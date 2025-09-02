@@ -1,4 +1,4 @@
-import dgram from 'dgram';
+import { queryGameServerInfo, queryGameServerPlayer } from 'steam-server-query';
 import { config } from '../../src/config/config';
 
 export interface PublicServerInfo {
@@ -33,34 +33,41 @@ export class SteamQueryService {
     try {
       const startTime = Date.now();
 
-      // Query A2S_INFO via UDP sur le port Query
       const queryPort = (config.server as any).queryPort || config.server.port;
-      console.log(`🔍 Steam Query vers ${config.server.ip}:${queryPort}...`);
-      const serverInfo = await this.queryServerInfo(config.server.ip, queryPort);
+      const host = `${config.server.ip}:${queryPort}`;
+      console.log(`🔍 Steam Query via lib vers ${host}...`);
 
+      const info = await queryGameServerInfo(
+        host,
+        1,
+        (config as any)?.steamQuery?.timeout ?? 3000
+      );
 
-
-      console.log('Info: Server info:', serverInfo);
-      const ping = Date.now() - startTime;
-
-      // Essayer de récupérer la liste des joueurs
       let playerList: string[] = [];
       try {
-        playerList = await this.queryPlayerList(config.server.ip, config.server.port);
+        const players = await queryGameServerPlayer(
+          host,
+          1,
+          (config as any)?.steamQuery?.timeout ?? 3000
+        );
+        // players: tableau d'objets { name, score, duration }
+        playerList = Array.isArray(players) ? players.map((p: any) => p?.name).filter(Boolean) : [];
       } catch (playerError) {
         console.log('Info: Liste des joueurs non disponible');
       }
 
+      const ping = Date.now() - startTime;
+
       const publicInfo: PublicServerInfo = {
-        playerCount: serverInfo.players || 0,
-        maxPlayers: serverInfo.maxPlayers || config.server.maxSlots,
-        serverName: serverInfo.name || config.server.name,
-        map: serverInfo.map || config.server.map,
-        gameMode: serverInfo.game || config.server.gameMode,
-        ping: ping,
+        playerCount: (info as any)?.players ?? 0,
+        maxPlayers: (info as any)?.maxPlayers ?? config.server.maxSlots,
+        serverName: (info as any)?.name ?? config.server.name,
+        map: (info as any)?.map ?? config.server.map,
+        gameMode: (info as any)?.game ?? config.server.gameMode,
+        ping,
         isOnline: true,
-        version: serverInfo.version || 'Unknown',
-        playerList: playerList
+        version: (info as any)?.version ?? 'Unknown',
+        playerList
       };
 
       this.lastServerInfo = publicInfo;
@@ -92,111 +99,7 @@ export class SteamQueryService {
     }
   }
 
-  /**
-   * Query A2S_INFO - Informations serveur (protocole Steam natif)
-   */
-  private async queryServerInfo(ip: string, port: number): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const client = dgram.createSocket('udp4');
-      const timeout = setTimeout(() => {
-        client.close();
-        reject(new Error('Timeout'));
-      }, 3000);
-
-      // Paquet A2S_INFO
-      const packet = Buffer.from([
-        0xFF, 0xFF, 0xFF, 0xFF, // Header
-        0x54, // A2S_INFO
-        0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x20, 0x45, 0x6E, 0x67, 0x69, 0x6E, 0x65, 0x20, 0x51, 0x75, 0x65, 0x72, 0x79, 0x00 // "Source Engine Query"
-      ]);
-
-      client.on('message', (msg) => {
-        clearTimeout(timeout);
-        client.close();
-
-        try {
-          const response = this.parseA2SInfoResponse(msg);
-          resolve(response);
-        } catch (parseError) {
-          reject(parseError);
-        }
-      });
-
-      client.on('error', (err) => {
-        clearTimeout(timeout);
-        client.close();
-        reject(err);
-      });
-
-      client.send(packet, port, ip);
-    });
-  }
-
-  /**
-   * Parser la réponse A2S_INFO
-   */
-  private parseA2SInfoResponse(buffer: Buffer): any {
-    let offset = 4; // Skip header
-    const type = buffer.readUInt8(offset++);
-
-    if (type !== 0x49) { // A2S_INFO response
-      throw new Error('Invalid A2S_INFO response');
-    }
-
-    // Protocol version
-    const protocol = buffer.readUInt8(offset++);
-
-    // Server name (null-terminated string)
-    const nameStart = offset;
-    while (buffer[offset] !== 0 && offset < buffer.length) offset++;
-    const name = buffer.toString('utf8', nameStart, offset);
-    offset++; // Skip null terminator
-
-    // Map name
-    const mapStart = offset;
-    while (buffer[offset] !== 0 && offset < buffer.length) offset++;
-    const map = buffer.toString('utf8', mapStart, offset);
-    offset++;
-
-    // Folder name
-    const folderStart = offset;
-    while (buffer[offset] !== 0 && offset < buffer.length) offset++;
-    const folder = buffer.toString('utf8', folderStart, offset);
-    offset++;
-
-    // Game name
-    const gameStart = offset;
-    while (buffer[offset] !== 0 && offset < buffer.length) offset++;
-    const game = buffer.toString('utf8', gameStart, offset);
-    offset++;
-
-    // Skip app ID (2 bytes)
-    offset += 2;
-
-    // Players
-    const players = buffer.readUInt8(offset++);
-    const maxPlayers = buffer.readUInt8(offset++);
-
-    return {
-      protocol,
-      name,
-      map,
-      folder,
-      game,
-      players,
-      maxPlayers,
-      version: 'Steam'
-    };
-  }
-
-  /**
-   * Query simple de la liste des joueurs
-   */
-  private async queryPlayerList(_ip: string, _port: number): Promise<string[]> {
-    // Pour simplifier, retourner une liste vide
-    // L'implémentation complète A2S_PLAYER est plus complexe
-    return [];
-  }
+  // Les implémentations UDP natives sont remplacées par la librairie steam-server-query
 
   /**
    * Ping simple du serveur
@@ -204,7 +107,13 @@ export class SteamQueryService {
   async pingServer(): Promise<{ online: boolean; ping: number }> {
     try {
       const startTime = Date.now();
-      await this.queryServerInfo(config.server.ip, config.server.port);
+      const queryPort = (config.server as any).queryPort || config.server.port;
+      const host = `${config.server.ip}:${queryPort}`;
+      await queryGameServerInfo(
+        host,
+        1,
+        (config as any)?.steamQuery?.timeout ?? 3000
+      );
       const ping = Date.now() - startTime;
 
       return { online: true, ping };
@@ -226,10 +135,16 @@ export class SteamQueryService {
    */
   async getPlayerCount(): Promise<{ count: number; max: number }> {
     try {
-      const serverInfo = await this.queryServerInfo(config.server.ip, config.server.port);
+      const queryPort = (config.server as any).queryPort || config.server.port;
+      const host = `${config.server.ip}:${queryPort}`;
+      const serverInfo = await queryGameServerInfo(
+        host,
+        1,
+        (config as any)?.steamQuery?.timeout ?? 3000
+      );
       return {
-        count: serverInfo.players || 0,
-        max: serverInfo.maxPlayers || config.server.maxSlots
+        count: (serverInfo as any)?.players ?? 0,
+        max: (serverInfo as any)?.maxPlayers ?? config.server.maxSlots
       };
     } catch (error) {
       return { count: 0, max: config.server.maxSlots };

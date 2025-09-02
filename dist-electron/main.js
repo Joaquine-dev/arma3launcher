@@ -9,7 +9,7 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var _validator, _encryptionKey, _options, _defaultValues;
-import require$$1$5, { app as app$1, ipcMain as ipcMain$1, dialog, shell as shell$1, BrowserWindow } from "electron";
+import require$$1$5, { ipcMain as ipcMain$1, dialog, shell as shell$1, app as app$1, BrowserWindow } from "electron";
 import require$$1$1 from "fs";
 import require$$0$1 from "constants";
 import require$$0$2 from "stream";
@@ -34,8 +34,7 @@ import crypto from "node:crypto";
 import assert$1 from "node:assert";
 import os$1 from "node:os";
 import { setTimeout as setTimeout$1 } from "node:timers/promises";
-import require$$0$5 from "net";
-import dgram from "dgram";
+import require$$0$5 from "dgram";
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
@@ -484,8 +483,8 @@ else if (/\bgfs4\b/i.test(process.env.NODE_DEBUG || ""))
     console.error(m);
   };
 if (!fs$z[gracefulQueue]) {
-  var queue$1 = commonjsGlobal[gracefulQueue] || [];
-  publishQueue(fs$z, queue$1);
+  var queue = commonjsGlobal[gracefulQueue] || [];
+  publishQueue(fs$z, queue);
   fs$z.close = function(fs$close) {
     function close(fd, cb) {
       return fs$close.call(fs$z, fd, function(err) {
@@ -2281,8 +2280,8 @@ var out = {};
 var CancellationToken$1 = {};
 Object.defineProperty(CancellationToken$1, "__esModule", { value: true });
 CancellationToken$1.CancellationError = CancellationToken$1.CancellationToken = void 0;
-const events_1$2 = require$$0$3;
-class CancellationToken extends events_1$2.EventEmitter {
+const events_1$1 = require$$0$3;
+class CancellationToken extends events_1$1.EventEmitter {
   get cancelled() {
     return this._cancelled || this._parent != null && this._parent.cancelled;
   }
@@ -3157,8 +3156,8 @@ var srcExports = src.exports;
 var ProgressCallbackTransform$1 = {};
 Object.defineProperty(ProgressCallbackTransform$1, "__esModule", { value: true });
 ProgressCallbackTransform$1.ProgressCallbackTransform = void 0;
-const stream_1$4 = require$$0$2;
-class ProgressCallbackTransform extends stream_1$4.Transform {
+const stream_1$3 = require$$0$2;
+class ProgressCallbackTransform extends stream_1$3.Transform {
   constructor(total, cancellationToken, onProgress) {
     super();
     this.total = total;
@@ -3219,7 +3218,7 @@ httpExecutor.safeStringifyJson = safeStringifyJson;
 const crypto_1$4 = require$$0$4;
 const debug_1$1 = srcExports;
 const fs_1$5 = require$$1$1;
-const stream_1$3 = require$$0$2;
+const stream_1$2 = require$$0$2;
 const url_1$5 = require$$4$2;
 const CancellationToken_1$1 = CancellationToken$1;
 const error_1$2 = error$l;
@@ -3478,7 +3477,7 @@ function configureRequestUrl(url, options) {
   }
   options.path = url.pathname + url.search;
 }
-class DigestTransform extends stream_1$3.Transform {
+class DigestTransform extends stream_1$2.Transform {
   // noinspection JSUnusedGlobalSymbols
   get actual() {
     return this._actual;
@@ -9941,8 +9940,8 @@ lodash_isequal.exports;
   );
   var Buffer2 = moduleExports ? root2.Buffer : void 0, Symbol2 = root2.Symbol, Uint8Array2 = root2.Uint8Array, propertyIsEnumerable = objectProto2.propertyIsEnumerable, splice = arrayProto.splice, symToStringTag = Symbol2 ? Symbol2.toStringTag : void 0;
   var nativeGetSymbols = Object.getOwnPropertySymbols, nativeIsBuffer = Buffer2 ? Buffer2.isBuffer : void 0, nativeKeys = overArg(Object.keys, Object);
-  var DataView = getNative(root2, "DataView"), Map2 = getNative(root2, "Map"), Promise2 = getNative(root2, "Promise"), Set2 = getNative(root2, "Set"), WeakMap2 = getNative(root2, "WeakMap"), nativeCreate = getNative(Object, "create");
-  var dataViewCtorString = toSource(DataView), mapCtorString = toSource(Map2), promiseCtorString = toSource(Promise2), setCtorString = toSource(Set2), weakMapCtorString = toSource(WeakMap2);
+  var DataView2 = getNative(root2, "DataView"), Map2 = getNative(root2, "Map"), Promise2 = getNative(root2, "Promise"), Set2 = getNative(root2, "Set"), WeakMap2 = getNative(root2, "WeakMap"), nativeCreate = getNative(Object, "create");
+  var dataViewCtorString = toSource(DataView2), mapCtorString = toSource(Map2), promiseCtorString = toSource(Promise2), setCtorString = toSource(Set2), weakMapCtorString = toSource(WeakMap2);
   var symbolProto2 = Symbol2 ? Symbol2.prototype : void 0, symbolValueOf = symbolProto2 ? symbolProto2.valueOf : void 0;
   function Hash(entries) {
     var index = -1, length = entries == null ? 0 : entries.length;
@@ -10389,7 +10388,7 @@ lodash_isequal.exports;
     });
   };
   var getTag = baseGetTag;
-  if (DataView && getTag(new DataView(new ArrayBuffer(1))) != dataViewTag || Map2 && getTag(new Map2()) != mapTag || Promise2 && getTag(Promise2.resolve()) != promiseTag || Set2 && getTag(new Set2()) != setTag || WeakMap2 && getTag(new WeakMap2()) != weakMapTag) {
+  if (DataView2 && getTag(new DataView2(new ArrayBuffer(1))) != dataViewTag || Map2 && getTag(new Map2()) != mapTag || Promise2 && getTag(Promise2.resolve()) != promiseTag || Set2 && getTag(new Set2()) != setTag || WeakMap2 && getTag(new WeakMap2()) != weakMapTag) {
     getTag = function(value) {
       var result = baseGetTag(value), Ctor = result == objectTag ? value.constructor : void 0, ctorString = Ctor ? toSource(Ctor) : "";
       if (ctorString) {
@@ -11529,7 +11528,7 @@ DataSplitter$1.DataSplitter = void 0;
 DataSplitter$1.copyData = copyData;
 const builder_util_runtime_1$7 = out;
 const fs_1$3 = require$$1$1;
-const stream_1$2 = require$$0$2;
+const stream_1$1 = require$$0$2;
 const downloadPlanBuilder_1$2 = downloadPlanBuilder;
 const DOUBLE_CRLF = Buffer.from("\r\n\r\n");
 var ReadState;
@@ -11552,7 +11551,7 @@ function copyData(task, out2, oldFileFd, reject, resolve2) {
     end: false
   });
 }
-class DataSplitter extends stream_1$2.Writable {
+class DataSplitter extends stream_1$1.Writable {
   constructor(out2, options, partIndexToTaskIndex, boundary, partIndexToLength, finishHandler) {
     super();
     this.out = out2;
@@ -11825,13 +11824,13 @@ function checkIsRangesSupported(response, reject) {
 var ProgressDifferentialDownloadCallbackTransform$1 = {};
 Object.defineProperty(ProgressDifferentialDownloadCallbackTransform$1, "__esModule", { value: true });
 ProgressDifferentialDownloadCallbackTransform$1.ProgressDifferentialDownloadCallbackTransform = void 0;
-const stream_1$1 = require$$0$2;
+const stream_1 = require$$0$2;
 var OperationKind;
 (function(OperationKind2) {
   OperationKind2[OperationKind2["COPY"] = 0] = "COPY";
   OperationKind2[OperationKind2["DOWNLOAD"] = 1] = "DOWNLOAD";
 })(OperationKind || (OperationKind = {}));
-class ProgressDifferentialDownloadCallbackTransform extends stream_1$1.Transform {
+class ProgressDifferentialDownloadCallbackTransform extends stream_1.Transform {
   constructor(progressDifferentialDownloadInfo, cancellationToken, onProgress) {
     super();
     this.progressDifferentialDownloadInfo = progressDifferentialDownloadInfo;
@@ -12200,7 +12199,7 @@ AppUpdater$1.NoOpLogger = AppUpdater$1.AppUpdater = void 0;
 const builder_util_runtime_1$4 = out;
 const crypto_1$1 = require$$0$4;
 const os_1 = require$$2$1;
-const events_1$1 = require$$0$3;
+const events_1 = require$$0$3;
 const fs_extra_1$4 = lib$2;
 const js_yaml_1 = jsYaml;
 const lazy_val_1 = main;
@@ -12215,7 +12214,7 @@ const zlib_1$1 = require$$14;
 const util_1$v = util$2;
 const GenericDifferentialDownloader_1 = GenericDifferentialDownloader$1;
 const types_1$6 = types$1;
-class AppUpdater extends events_1$1.EventEmitter {
+class AppUpdater extends events_1.EventEmitter {
   /**
    * Get the update channel. Doesn't return `channel` from the update configuration, only if was previously set.
    */
@@ -23939,12 +23938,12 @@ const config = {
     name: "Arma 3 Roleplay Server",
     shortName: "Arma RP",
     description: "Serveur Roleplay français • Map Altis",
-    ip: "82.29.170.30",
+    ip: "188.165.200.136",
     port: 2302,
     // Port de jeu
-    queryPort: 2302,
+    queryPort: 2303,
     // Port Steam Query
-    steamPort: 2303,
+    steamPort: 2304,
     // Port Steam
     maxSlots: 64,
     map: "Altis",
@@ -23962,22 +23961,12 @@ const config = {
     urlRessources: "https://your-server.com/resources",
     manifestUrl: "http://82.29.170.30/mods/manifest.json"
   },
-  // 🔌 Configuration RCON (DÉSACTIVÉ - ports non accessibles)
-  rcon: {
-    enabled: true,
-    // ❌ Ports 2303/2304 bloqués par firewall/réseau
-    host: "82.29.170.30",
-    port: 2303,
-    password: "votre-mot-de-passe-rcon",
-    timeout: 5e3,
-    reconnectInterval: 3e4
-  },
   // 🌐 Steam Query (DÉSACTIVÉ - timeout)
   steamQuery: {
-    enabled: false,
+    enabled: true,
     // ❌ Port Query 2303 non accessible depuis l'extérieur
-    refreshInterval: 15e3,
-    timeout: 5e3
+    refreshInterval: 3e4,
+    timeout: 12e3
   },
   // 📰 Configuration des nouvelles (JSON moderne)
   news: {
@@ -24129,9 +24118,6 @@ class ManifestService {
     if (!serverManifest) {
       throw new Error("Impossible de récupérer le manifest serveur");
     }
-    console.log(`🔍 Comparaison manifests:`);
-    console.log(`   Server: ${serverManifest.files.length} fichiers, timestamp: ${new Date(serverManifest.timestamp).toLocaleString()}`);
-    console.log(`   Local: ${(localManifest == null ? void 0 : localManifest.files.length) || 0} fichiers, timestamp: ${localManifest ? new Date(localManifest.timestamp).toLocaleString() : "N/A"}`);
     const toDownload = [];
     const toDelete = [];
     let totalDownloadSize = 0;
@@ -24187,520 +24173,6 @@ class ManifestService {
       stream.on("end", () => resolve2(hash.digest("hex")));
       stream.on("error", reject);
     });
-  }
-}
-var lib = {};
-var rcon = {};
-var packet = {};
-(function(exports) {
-  Object.defineProperty(exports, "__esModule", { value: true });
-  function encodePacket(packet2) {
-    const buffer = Buffer.alloc(packet2.payload.length + 14);
-    buffer.writeInt32LE(packet2.payload.length + 10, 0);
-    buffer.writeInt32LE(packet2.id, 4);
-    buffer.writeInt32LE(packet2.type, 8);
-    packet2.payload.copy(buffer, 12);
-    return buffer;
-  }
-  exports.encodePacket = encodePacket;
-  function decodePacket(buffer) {
-    const length = buffer.readInt32LE(0);
-    const id2 = buffer.readInt32LE(4);
-    const type2 = buffer.readInt32LE(8);
-    const payload = buffer.slice(12, length + 2);
-    return {
-      id: id2,
-      type: type2,
-      payload
-    };
-  }
-  exports.decodePacket = decodePacket;
-  (function(PacketType) {
-    PacketType[PacketType["Auth"] = 3] = "Auth";
-    PacketType[PacketType["AuthResponse"] = 2] = "AuthResponse";
-    PacketType[PacketType["Command"] = 2] = "Command";
-    PacketType[PacketType["CommandResponse"] = 0] = "CommandResponse";
-  })(exports.PacketType || (exports.PacketType = {}));
-})(packet);
-var splitter = {};
-Object.defineProperty(splitter, "__esModule", { value: true });
-const stream_1 = require$$0$2;
-function createSplitter() {
-  let transform = new stream_1.Transform();
-  let buffer = Buffer.alloc(0);
-  transform._transform = (chunk, _encoding, callback) => {
-    buffer = Buffer.concat([buffer, chunk]);
-    let offset = 0;
-    while (offset + 4 < buffer.length) {
-      const length = buffer.readInt32LE(offset);
-      if (offset + 4 + length > buffer.length)
-        break;
-      transform.push(buffer.slice(offset, offset + 4 + length));
-      offset += 4 + length;
-    }
-    buffer = buffer.slice(offset);
-    callback();
-  };
-  return transform;
-}
-splitter.createSplitter = createSplitter;
-var queue = {};
-Object.defineProperty(queue, "__esModule", { value: true });
-class PromiseQueue {
-  constructor(maxConcurrent = 1) {
-    this.maxConcurrent = maxConcurrent;
-    this.paused = false;
-    this.queue = [];
-    this.pendingPromiseCount = 0;
-  }
-  async add(promiseGenerator) {
-    return new Promise((resolve2, reject) => {
-      this.queue.push({ promiseGenerator, resolve: resolve2, reject });
-      this.dequeue();
-    });
-  }
-  pause() {
-    this.paused = true;
-  }
-  resume() {
-    this.paused = false;
-    this.dequeue();
-  }
-  async dequeue() {
-    if (this.paused || this.pendingPromiseCount >= this.maxConcurrent)
-      return;
-    const item = this.queue.shift();
-    if (!item)
-      return;
-    this.pendingPromiseCount++;
-    try {
-      const value = await item.promiseGenerator();
-      item.resolve(value);
-    } catch (error2) {
-      item.reject(error2);
-    } finally {
-      this.pendingPromiseCount--;
-      this.dequeue();
-    }
-  }
-}
-queue.PromiseQueue = PromiseQueue;
-Object.defineProperty(rcon, "__esModule", { value: true });
-const net_1 = require$$0$5;
-const packet_1 = packet;
-const splitter_1 = splitter;
-const queue_1 = queue;
-const events_1 = require$$0$3;
-const defaultOptions = {
-  port: 25575,
-  timeout: 2e3,
-  maxPending: 1
-};
-class Rcon {
-  constructor(config2) {
-    this.callbacks = /* @__PURE__ */ new Map();
-    this.requestId = 0;
-    this.emitter = new events_1.EventEmitter();
-    this.socket = null;
-    this.authenticated = false;
-    this.on = this.emitter.on.bind(this.emitter);
-    this.once = this.emitter.once.bind(this.emitter);
-    this.off = this.emitter.removeListener.bind(this.emitter);
-    this.config = { ...defaultOptions, ...config2 };
-    this.sendQueue = new queue_1.PromiseQueue(this.config.maxPending);
-    if (config2.maxPending)
-      this.emitter.setMaxListeners(config2.maxPending);
-  }
-  static async connect(config2) {
-    const rcon2 = new Rcon(config2);
-    await rcon2.connect();
-    return rcon2;
-  }
-  async connect() {
-    if (this.socket) {
-      throw new Error("Already connected or connecting");
-    }
-    const socket = this.socket = net_1.connect({
-      host: this.config.host,
-      port: this.config.port
-    });
-    try {
-      await new Promise((resolve2, reject) => {
-        socket.once("error", reject);
-        socket.on("connect", () => {
-          socket.off("error", reject);
-          resolve2();
-        });
-      });
-    } catch (error2) {
-      this.socket = null;
-      throw error2;
-    }
-    socket.setNoDelay(true);
-    socket.on("error", (error2) => this.emitter.emit("error", error2));
-    this.emitter.emit("connect");
-    this.socket.on("close", () => {
-      this.emitter.emit("end");
-      this.sendQueue.pause();
-      this.socket = null;
-      this.authenticated = false;
-    });
-    this.socket.pipe(splitter_1.createSplitter()).on("data", this.handlePacket.bind(this));
-    const id2 = this.requestId;
-    const packet2 = await this.sendPacket(packet_1.PacketType.Auth, Buffer.from(this.config.password));
-    this.sendQueue.resume();
-    if (packet2.id != id2 || packet2.id == -1) {
-      this.sendQueue.pause();
-      this.socket.destroy();
-      this.socket = null;
-      throw new Error("Authentication failed");
-    }
-    this.authenticated = true;
-    this.emitter.emit("authenticated");
-    return this;
-  }
-  /**
-    Close the connection to the server.
-  */
-  async end() {
-    if (!this.socket || this.socket.connecting) {
-      throw new Error("Not connected");
-    }
-    if (!this.socket.writable)
-      throw new Error("End called twice");
-    this.sendQueue.pause();
-    this.socket.end();
-    await new Promise((resolve2) => this.once("end", resolve2));
-  }
-  /**
-        Send a command to the server.
-  
-        @param command The command that will be executed on the server.
-        @returns A promise that will be resolved with the command's response from the server.
-      */
-  async send(command) {
-    const payload = await this.sendRaw(Buffer.from(command, "utf-8"));
-    return payload.toString("utf-8");
-  }
-  async sendRaw(buffer) {
-    if (!this.authenticated || !this.socket)
-      throw new Error("Not connected");
-    const packet2 = await this.sendPacket(packet_1.PacketType.Command, buffer);
-    return packet2.payload;
-  }
-  async sendPacket(type2, payload) {
-    const id2 = this.requestId++;
-    const createSendPromise = () => {
-      this.socket.write(packet_1.encodePacket({ id: id2, type: type2, payload }));
-      return new Promise((resolve2, reject) => {
-        const onEnd = () => (reject(new Error("Connection closed")), clearTimeout(timeout));
-        this.emitter.on("end", onEnd);
-        const timeout = setTimeout(() => {
-          this.off("end", onEnd);
-          reject(new Error(`Timeout for packet id ${id2}`));
-        }, this.config.timeout);
-        this.callbacks.set(id2, (packet2) => {
-          this.off("end", onEnd);
-          clearTimeout(timeout);
-          resolve2(packet2);
-        });
-      });
-    };
-    if (type2 == packet_1.PacketType.Auth) {
-      return createSendPromise();
-    } else {
-      return await this.sendQueue.add(createSendPromise);
-    }
-  }
-  handlePacket(data) {
-    const packet2 = packet_1.decodePacket(data);
-    const id2 = this.authenticated ? packet2.id : this.requestId - 1;
-    const handler = this.callbacks.get(id2);
-    if (handler) {
-      handler(packet2);
-      this.callbacks.delete(id2);
-    }
-  }
-}
-rcon.Rcon = Rcon;
-(function(exports) {
-  function __export(m) {
-    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-  }
-  Object.defineProperty(exports, "__esModule", { value: true });
-  __export(rcon);
-})(lib);
-const _CryptoService = class _CryptoService {
-  /**
-   * Génère une clé de chiffrement unique basée sur l'app
-   */
-  static generateKey() {
-    const appName = app$1.getName();
-    const appVersion = app$1.getVersion();
-    const machineId = process.env.COMPUTERNAME || process.env.HOSTNAME || "default";
-    const keySource = `${appName}-${appVersion}-${machineId}-Arma-LAUNCHER-SECRET`;
-    return crypto.scryptSync(keySource, "salt", _CryptoService.KEY_LENGTH);
-  }
-  /**
-   * Chiffre une chaîne de caractères
-   */
-  static encrypt(text) {
-    try {
-      const key = this.generateKey();
-      const iv = crypto.randomBytes(this.IV_LENGTH);
-      const cipher = crypto.createCipher(this.ALGORITHM, key);
-      let encrypted = cipher.update(text, "utf8", "hex");
-      encrypted += cipher.final("hex");
-      const tag = cipher.getAuthTag();
-      return iv.toString("hex") + tag.toString("hex") + encrypted;
-    } catch (error2) {
-      console.error("Erreur chiffrement:", error2);
-      return text;
-    }
-  }
-  /**
-   * Déchiffre une chaîne de caractères
-   */
-  static decrypt(encryptedData) {
-    try {
-      const key = this.generateKey();
-      const iv = Buffer.from(encryptedData.slice(0, this.IV_LENGTH * 2), "hex");
-      const tag = Buffer.from(encryptedData.slice(this.IV_LENGTH * 2, (this.IV_LENGTH + this.TAG_LENGTH) * 2), "hex");
-      const encrypted = encryptedData.slice((this.IV_LENGTH + this.TAG_LENGTH) * 2);
-      const decipher = crypto.createDecipheriv(this.ALGORITHM, key, iv);
-      decipher.setAuthTag(tag);
-      let decrypted = decipher.update(encrypted, "hex", "utf8");
-      decrypted += decipher.final("utf8");
-      return decrypted;
-    } catch (error2) {
-      console.error("Erreur déchiffrement:", error2);
-      return encryptedData;
-    }
-  }
-  /**
-   * Vérifie si une chaîne est chiffrée
-   */
-  static isEncrypted(data) {
-    return data.length >= (this.IV_LENGTH + this.TAG_LENGTH) * 2;
-  }
-  /**
-   * Chiffre les credentials sensibles dans la config
-   */
-  static encryptCredentials(config2) {
-    var _a;
-    const configCopy = JSON.parse(JSON.stringify(config2));
-    if (((_a = configCopy.rcon) == null ? void 0 : _a.password) && !this.isEncrypted(configCopy.rcon.password)) {
-      configCopy.rcon.password = this.encrypt(configCopy.rcon.password);
-      console.log("🔒 Mot de passe RCON chiffré");
-    }
-    return configCopy;
-  }
-  /**
-   * Déchiffre les credentials pour utilisation
-   */
-  static decryptCredentials(config2) {
-    var _a;
-    const configCopy = JSON.parse(JSON.stringify(config2));
-    if (((_a = configCopy.rcon) == null ? void 0 : _a.password) && this.isEncrypted(configCopy.rcon.password)) {
-      configCopy.rcon.password = this.decrypt(configCopy.rcon.password);
-    }
-    return configCopy;
-  }
-};
-__publicField(_CryptoService, "ALGORITHM", "aes-256-gcm");
-__publicField(_CryptoService, "KEY_LENGTH", 32);
-__publicField(_CryptoService, "IV_LENGTH", 16);
-__publicField(_CryptoService, "TAG_LENGTH", 16);
-let CryptoService = _CryptoService;
-class RconService {
-  constructor() {
-    __publicField(this, "rcon", null);
-    __publicField(this, "isConnected", false);
-    __publicField(this, "reconnectTimer", null);
-    __publicField(this, "lastServerInfo", null);
-    if (config.rcon.enabled) {
-      this.connect();
-    }
-  }
-  /**
-   * Connexion RCON au serveur Arma 3
-   */
-  async connect() {
-    try {
-      const decryptedConfig = CryptoService.decryptCredentials(config);
-      this.rcon = new lib.Rcon({
-        host: decryptedConfig.rcon.host,
-        port: decryptedConfig.rcon.port,
-        password: decryptedConfig.rcon.password,
-        timeout: decryptedConfig.rcon.timeout
-      });
-      await this.rcon.connect();
-      this.isConnected = true;
-      console.log("✅ RCON connecté au serveur Arma 3");
-      this.scheduleReconnect();
-    } catch (error2) {
-      console.error("❌ Erreur connexion RCON:", error2);
-      this.isConnected = false;
-      this.scheduleReconnect();
-    }
-  }
-  /**
-   * Programmer une reconnexion automatique
-   */
-  scheduleReconnect() {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-    }
-    this.reconnectTimer = setTimeout(() => {
-      if (!this.isConnected) {
-        console.log("🔄 Tentative de reconnexion RCON...");
-        this.connect();
-      }
-    }, config.rcon.reconnectInterval);
-  }
-  /**
-   * Récupérer les informations du serveur en temps réel
-   */
-  async getServerInfo() {
-    if (!this.isConnected || !this.rcon) {
-      return this.getDefaultServerInfo();
-    }
-    try {
-      const startTime = Date.now();
-      const [playersResponse, statusResponse, fpsResponse] = await Promise.allSettled([
-        this.rcon.send("players"),
-        this.rcon.send("#status"),
-        this.rcon.send("#monitor")
-      ]);
-      const ping = Date.now() - startTime;
-      const playerInfo = this.parsePlayersResponse(
-        playersResponse.status === "fulfilled" ? playersResponse.value : ""
-      );
-      const statusInfo = this.parseStatusResponse(
-        statusResponse.status === "fulfilled" ? statusResponse.value : ""
-      );
-      const fpsInfo = this.parseFpsResponse(
-        fpsResponse.status === "fulfilled" ? fpsResponse.value : ""
-      );
-      const serverInfo = {
-        playerCount: playerInfo.count,
-        maxPlayers: config.server.maxSlots,
-        serverName: statusInfo.name || config.server.name,
-        map: statusInfo.map || config.server.map,
-        gameMode: config.server.gameMode,
-        playerList: playerInfo.players,
-        ping,
-        isOnline: true,
-        fps: fpsInfo.fps,
-        uptime: statusInfo.uptime || "0:00:00"
-      };
-      this.lastServerInfo = serverInfo;
-      return serverInfo;
-    } catch (error2) {
-      console.error("❌ Erreur récupération infos RCON:", error2);
-      this.isConnected = false;
-      this.scheduleReconnect();
-      return this.lastServerInfo || this.getDefaultServerInfo();
-    }
-  }
-  /**
-   * Parser la réponse de la commande 'players'
-   */
-  parsePlayersResponse(response) {
-    const lines = response.split("\n").filter((line) => line.trim());
-    const players = [];
-    for (const line of lines) {
-      const match = line.match(/^\d+\s+[\d.]+:\d+\s+\d+\s+(.+?)(?:\s+\(.*?\))?$/);
-      if (match && match[1] && match[1].trim() !== "") {
-        players.push(match[1].trim());
-      }
-    }
-    return {
-      count: players.length,
-      players
-    };
-  }
-  /**
-   * Parser la réponse de la commande '#status'
-   */
-  parseStatusResponse(response) {
-    const result = {};
-    const lines = response.split("\n");
-    for (const line of lines) {
-      if (line.includes("Mission:")) {
-        const match = line.match(/Mission:\s*(.+)/);
-        if (match) result.map = match[1].trim();
-      }
-      if (line.includes("Server name:")) {
-        const match = line.match(/Server name:\s*(.+)/);
-        if (match) result.name = match[1].trim();
-      }
-      if (line.includes("Uptime:")) {
-        const match = line.match(/Uptime:\s*(.+)/);
-        if (match) result.uptime = match[1].trim();
-      }
-    }
-    return result;
-  }
-  /**
-   * Parser la réponse de la commande '#monitor'
-   */
-  parseFpsResponse(response) {
-    const match = response.match(/fps:\s*(\d+)/i);
-    return {
-      fps: match ? parseInt(match[1], 10) : 50
-      // FPS par défaut
-    };
-  }
-  /**
-   * Informations par défaut si RCON indisponible
-   */
-  getDefaultServerInfo() {
-    return {
-      playerCount: 0,
-      maxPlayers: config.server.maxSlots,
-      serverName: config.server.name,
-      map: config.server.map,
-      gameMode: config.server.gameMode,
-      playerList: [],
-      ping: 0,
-      isOnline: false,
-      fps: 0,
-      uptime: "0:00:00"
-    };
-  }
-  /**
-   * Exécuter une commande RCON personnalisée
-   */
-  async executeCommand(command) {
-    if (!this.isConnected || !this.rcon) {
-      throw new Error("RCON non connecté");
-    }
-    try {
-      return await this.rcon.send(command);
-    } catch (error2) {
-      console.error("❌ Erreur commande RCON:", error2);
-      throw error2;
-    }
-  }
-  /**
-   * Fermer la connexion RCON
-   */
-  async disconnect() {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-    if (this.rcon) {
-      this.rcon = null;
-    }
-    this.isConnected = false;
-  }
-  /**
-   * Vérifier si RCON est connecté
-   */
-  isRconConnected() {
-    return this.isConnected;
   }
 }
 class NewsService {
@@ -24810,6 +24282,454 @@ class NewsService {
     return allNews.filter((item) => item.priority === "critical");
   }
 }
+var lib = {};
+var masterServer = {};
+var promiseSocket = {};
+Object.defineProperty(promiseSocket, "__esModule", { value: true });
+promiseSocket.PromiseSocket = void 0;
+const dgram_1 = require$$0$5;
+class PromiseSocket {
+  constructor(_attempts, _timeout) {
+    this._attempts = _attempts;
+    this._timeout = _timeout;
+    if (Array.isArray(this._timeout) && this._attempts !== this._timeout.length) {
+      throw new Error(`Number of attempts (${this._attempts}) does not match the length of the timeout array (${this._timeout.length})`);
+    }
+    this._socket = (0, dgram_1.createSocket)("udp4");
+  }
+  async send(buffer, host, port) {
+    return new Promise(async (resolve2, reject) => {
+      for (let i = 0; i < this._attempts; i++) {
+        let timeout;
+        if (Array.isArray(this._timeout)) {
+          timeout = this._timeout[i];
+        } else {
+          timeout = this._timeout;
+        }
+        try {
+          const messageBuffer = await this._socketSend(buffer, host, port, timeout);
+          return resolve2(messageBuffer);
+        } catch (err) {
+          if (i === this._attempts - 1) {
+            return reject(err);
+          }
+        }
+      }
+    });
+  }
+  closeSocket() {
+    this._socket.close();
+  }
+  _socketSend(buffer, host, port, timeout) {
+    return new Promise((resolve2, reject) => {
+      this._socket.send(buffer, port, host, (err) => {
+        if (err)
+          return reject(typeof err == "string" ? new Error(err) : err);
+        const messageListener = (buffer2) => {
+          this._socket.removeListener("message", messageListener);
+          this._socket.removeListener("error", errorListener);
+          clearTimeout(timeoutFnc);
+          return resolve2(buffer2);
+        };
+        const errorListener = (err2) => {
+          clearTimeout(timeoutFnc);
+          return reject(err2);
+        };
+        const timeoutFnc = setTimeout(() => {
+          this._socket.removeListener("message", messageListener);
+          this._socket.removeListener("error", errorListener);
+          return reject("Timeout reached. Possible reasons: You are being rate limited; Timeout too short; Wrong server host configured;");
+        }, timeout);
+        this._socket.on("message", messageListener);
+        this._socket.on("error", errorListener);
+      });
+    });
+  }
+}
+promiseSocket.PromiseSocket = PromiseSocket;
+Object.defineProperty(masterServer, "__esModule", { value: true });
+masterServer.queryMasterServer = void 0;
+const promiseSocket_1$1 = promiseSocket;
+const ZERO_IP = "0.0.0.0:0";
+const RESPONSE_START = Buffer.from([255, 255, 255, 255, 102, 10]);
+async function queryMasterServer(masterServer2, region, filters = {}, timeout = 1e3, maxHosts) {
+  const splitMasterServer = masterServer2.split(":");
+  const host = splitMasterServer[0];
+  const port = parseInt(splitMasterServer[1]);
+  const masterServerQuery = new MasterServerQuery(host, port, region, filters, timeout, maxHosts);
+  const hosts = await masterServerQuery.fetchServers();
+  return hosts;
+}
+masterServer.queryMasterServer = queryMasterServer;
+class MasterServerQuery {
+  constructor(_host, _port, _region, _filters, timeout, _maxHosts) {
+    this._host = _host;
+    this._port = _port;
+    this._region = _region;
+    this._filters = _filters;
+    this._maxHosts = _maxHosts;
+    this._seedId = ZERO_IP;
+    this._hosts = [];
+    this._promiseSocket = new promiseSocket_1$1.PromiseSocket(1, timeout);
+  }
+  async fetchServers() {
+    do {
+      let resultBuffer;
+      try {
+        resultBuffer = await this._promiseSocket.send(this._buildPacket(), this._host, this._port);
+      } catch (err) {
+        this._promiseSocket.closeSocket();
+        throw new Error(err);
+      }
+      const parsedHosts = this._parseBuffer(resultBuffer);
+      this._seedId = parsedHosts[parsedHosts.length - 1];
+      this._hosts.push(...parsedHosts);
+      if (this._maxHosts && this._hosts.length >= this._maxHosts && this._hosts[this._maxHosts - 1] !== ZERO_IP) {
+        this._promiseSocket.closeSocket();
+        return this._hosts.slice(0, this._maxHosts);
+      }
+    } while (this._seedId !== ZERO_IP);
+    this._promiseSocket.closeSocket();
+    this._hosts.pop();
+    return this._hosts;
+  }
+  _buildPacket() {
+    return Buffer.concat([
+      Buffer.from([49]),
+      Buffer.from([this._region]),
+      Buffer.from(this._seedId, "ascii"),
+      Buffer.from([0]),
+      Buffer.from(this.formatFilters(), "ascii")
+    ]);
+  }
+  formatFilters() {
+    let str2 = "";
+    for (const key of Object.keys(this._filters)) {
+      let val = this._filters[key];
+      str2 += "\\" + key + "\\";
+      if (key === "nor" || key === "nand") {
+        str2 += Object.keys(val).length + this._slashifyObject(val);
+      } else if (Array.isArray(val)) {
+        str2 += val.join(",");
+      } else {
+        str2 += val;
+      }
+    }
+    str2 += "\0";
+    return str2;
+  }
+  _slashifyObject(object) {
+    let str2 = "";
+    for (const key of Object.keys(object)) {
+      let val = object[key];
+      str2 += "\\" + key + "\\" + val;
+    }
+    return str2;
+  }
+  _parseBuffer(buffer) {
+    const hosts = [];
+    if (buffer.compare(RESPONSE_START, 0, 6, 0, 6) === 0) {
+      buffer = buffer.slice(6);
+    }
+    let i = 0;
+    while (i < buffer.length) {
+      const ip = this._numberToIp(buffer.readInt32BE(i));
+      const port = buffer[i + 4] << 8 | buffer[i + 5];
+      hosts.push(`${ip}:${port}`);
+      i += 6;
+    }
+    return hosts;
+  }
+  _numberToIp(number) {
+    var nbuffer = new ArrayBuffer(4);
+    var ndv = new DataView(nbuffer);
+    ndv.setUint32(0, number);
+    var a = new Array();
+    for (var i = 0; i < 4; i++) {
+      a[i] = ndv.getUint8(i);
+    }
+    return a.join(".");
+  }
+}
+var masterServerTypes = {};
+(function(exports) {
+  Object.defineProperty(exports, "__esModule", { value: true });
+  exports.REGIONS = void 0;
+  (function(REGIONS) {
+    REGIONS[REGIONS["US_EAST_COAST"] = 0] = "US_EAST_COAST";
+    REGIONS[REGIONS["US_WEST_COAST"] = 1] = "US_WEST_COAST";
+    REGIONS[REGIONS["SOUTH_AMERICA"] = 2] = "SOUTH_AMERICA";
+    REGIONS[REGIONS["EUROPE"] = 3] = "EUROPE";
+    REGIONS[REGIONS["ASIA"] = 4] = "ASIA";
+    REGIONS[REGIONS["AUSTRALIA"] = 5] = "AUSTRALIA";
+    REGIONS[REGIONS["MIDDLE_EAST"] = 6] = "MIDDLE_EAST";
+    REGIONS[REGIONS["AFRICA"] = 7] = "AFRICA";
+    REGIONS[REGIONS["ALL"] = 255] = "ALL";
+  })(exports.REGIONS || (exports.REGIONS = {}));
+})(masterServerTypes);
+var gameServer = {};
+Object.defineProperty(gameServer, "__esModule", { value: true });
+gameServer.queryGameServerRules = gameServer.queryGameServerPlayer = gameServer.queryGameServerInfo = void 0;
+const promiseSocket_1 = promiseSocket;
+async function queryGameServerInfo(gameServer2, attempts = 1, timeout = 1e3) {
+  const splitGameServer = gameServer2.split(":");
+  const host = splitGameServer[0];
+  const port = parseInt(splitGameServer[1]);
+  const gameServerQuery = new GameServerQuery(host, port, attempts, timeout);
+  const result = await gameServerQuery.info();
+  return result;
+}
+gameServer.queryGameServerInfo = queryGameServerInfo;
+async function queryGameServerPlayer(gameServer2, attempts = 1, timeout = 1e3) {
+  const splitGameServer = gameServer2.split(":");
+  const host = splitGameServer[0];
+  const port = parseInt(splitGameServer[1]);
+  const gameServerQuery = new GameServerQuery(host, port, attempts, timeout);
+  const result = await gameServerQuery.player();
+  return result;
+}
+gameServer.queryGameServerPlayer = queryGameServerPlayer;
+async function queryGameServerRules(gameServer2, attempts = 1, timeout = 1e3) {
+  const splitGameServer = gameServer2.split(":");
+  const host = splitGameServer[0];
+  const port = parseInt(splitGameServer[1]);
+  const gameServerQuery = new GameServerQuery(host, port, attempts, timeout);
+  const result = await gameServerQuery.rules();
+  return result;
+}
+gameServer.queryGameServerRules = queryGameServerRules;
+class GameServerQuery {
+  constructor(_host, _port, attempts, timeout) {
+    this._host = _host;
+    this._port = _port;
+    this._promiseSocket = new promiseSocket_1.PromiseSocket(attempts, timeout);
+  }
+  async info() {
+    let resultBuffer;
+    try {
+      resultBuffer = await this._promiseSocket.send(this._buildInfoPacket(), this._host, this._port);
+    } catch (err) {
+      this._promiseSocket.closeSocket();
+      throw new Error(err);
+    }
+    if (this._isChallengeResponse(resultBuffer)) {
+      resultBuffer = resultBuffer.slice(5);
+      const challenge = resultBuffer;
+      try {
+        resultBuffer = await this._promiseSocket.send(this._buildInfoPacket(challenge), this._host, this._port);
+      } catch (err) {
+        this._promiseSocket.closeSocket();
+        throw new Error(err);
+      }
+    }
+    this._promiseSocket.closeSocket();
+    const parsedInfoBuffer = this._parseInfoBuffer(resultBuffer);
+    return parsedInfoBuffer;
+  }
+  async player() {
+    let resultBuffer;
+    let gotPlayerResponse = false;
+    let challengeTries = 0;
+    do {
+      let challengeResultBuffer;
+      try {
+        challengeResultBuffer = await this._promiseSocket.send(this._buildPacket(Buffer.from([85])), this._host, this._port);
+      } catch (err) {
+        this._promiseSocket.closeSocket();
+        throw new Error(err);
+      }
+      const challenge = challengeResultBuffer.slice(5);
+      try {
+        resultBuffer = await this._promiseSocket.send(this._buildPacket(Buffer.from([85]), challenge), this._host, this._port);
+      } catch (err) {
+        this._promiseSocket.closeSocket();
+        throw new Error(err);
+      }
+      if (!this._isChallengeResponse(resultBuffer)) {
+        gotPlayerResponse = true;
+      }
+      challengeTries++;
+    } while (!gotPlayerResponse && challengeTries < 5);
+    this._promiseSocket.closeSocket();
+    if (this._isChallengeResponse(resultBuffer)) {
+      throw new Error("Server kept sending challenge responses.");
+    }
+    const parsedPlayerBuffer = this._parsePlayerBuffer(resultBuffer);
+    return parsedPlayerBuffer;
+  }
+  async rules() {
+    let challengeResultBuffer;
+    try {
+      challengeResultBuffer = await this._promiseSocket.send(this._buildPacket(Buffer.from([86])), this._host, this._port);
+    } catch (err) {
+      this._promiseSocket.closeSocket();
+      throw new Error(err);
+    }
+    const challenge = challengeResultBuffer.slice(5);
+    let resultBuffer;
+    try {
+      resultBuffer = await this._promiseSocket.send(this._buildPacket(Buffer.from([86]), challenge), this._host, this._port);
+    } catch (err) {
+      this._promiseSocket.closeSocket();
+      throw new Error(err);
+    }
+    this._promiseSocket.closeSocket();
+    const parsedRulesBuffer = this._parseRulesBuffer(resultBuffer);
+    return parsedRulesBuffer;
+  }
+  _buildInfoPacket(challenge) {
+    let packet = Buffer.concat([
+      Buffer.from([255, 255, 255, 255]),
+      Buffer.from([84]),
+      Buffer.from("Source Engine Query", "ascii"),
+      Buffer.from([0])
+    ]);
+    if (challenge) {
+      packet = Buffer.concat([
+        packet,
+        challenge
+      ]);
+    }
+    return packet;
+  }
+  _buildPacket(header, challenge) {
+    let packet = Buffer.concat([
+      Buffer.from([255, 255, 255, 255]),
+      header
+    ]);
+    if (challenge) {
+      packet = Buffer.concat([
+        packet,
+        challenge
+      ]);
+    } else {
+      packet = Buffer.concat([
+        packet,
+        Buffer.from([255, 255, 255, 255])
+      ]);
+    }
+    return packet;
+  }
+  _isChallengeResponse(buffer) {
+    return buffer.compare(Buffer.from([255, 255, 255, 255, 65]), 0, 5, 0, 5) === 0;
+  }
+  _parseInfoBuffer(buffer) {
+    const infoResponse = {};
+    buffer = buffer.slice(5);
+    [infoResponse.protocol, buffer] = this._readUInt8(buffer);
+    [infoResponse.name, buffer] = this._readString(buffer);
+    [infoResponse.map, buffer] = this._readString(buffer);
+    [infoResponse.folder, buffer] = this._readString(buffer);
+    [infoResponse.game, buffer] = this._readString(buffer);
+    [infoResponse.appId, buffer] = this._readInt16LE(buffer);
+    [infoResponse.players, buffer] = this._readUInt8(buffer);
+    [infoResponse.maxPlayers, buffer] = this._readUInt8(buffer);
+    [infoResponse.bots, buffer] = this._readUInt8(buffer);
+    infoResponse.serverType = buffer.subarray(0, 1).toString("utf-8");
+    buffer = buffer.slice(1);
+    infoResponse.environment = buffer.subarray(0, 1).toString("utf-8");
+    buffer = buffer.slice(1);
+    [infoResponse.visibility, buffer] = this._readUInt8(buffer);
+    [infoResponse.vac, buffer] = this._readUInt8(buffer);
+    [infoResponse.version, buffer] = this._readString(buffer);
+    if (buffer.length > 1) {
+      let edf;
+      [edf, buffer] = this._readUInt8(buffer);
+      if (edf & 128) {
+        [infoResponse.port, buffer] = this._readInt16LE(buffer);
+      }
+      if (edf & 16) {
+        buffer = buffer.slice(8);
+      }
+      if (edf & 64) {
+        [infoResponse.spectatorPort, buffer] = this._readUInt8(buffer);
+        [infoResponse.spectatorName, buffer] = this._readString(buffer);
+      }
+      if (edf & 32) {
+        [infoResponse.keywords, buffer] = this._readString(buffer);
+      }
+      if (edf & 1) {
+        infoResponse.gameId = buffer.readBigInt64LE();
+        buffer = buffer.slice(8);
+      }
+    }
+    return infoResponse;
+  }
+  _parsePlayerBuffer(buffer) {
+    const playerResponse = {};
+    buffer = buffer.slice(5);
+    [playerResponse.playerCount, buffer] = this._readUInt8(buffer);
+    playerResponse.players = [];
+    for (let i = 0; i < playerResponse.playerCount; i++) {
+      let player;
+      [player, buffer] = this._readPlayer(buffer);
+      playerResponse.players.push(player);
+    }
+    return playerResponse;
+  }
+  _parseRulesBuffer(buffer) {
+    const rulesResponse = {};
+    buffer = buffer.slice(5);
+    [rulesResponse.ruleCount, buffer] = this._readInt16LE(buffer);
+    rulesResponse.rules = [];
+    for (let i = 0; i < rulesResponse.ruleCount; i++) {
+      let rule;
+      [rule, buffer] = this._readRule(buffer);
+      rulesResponse.rules.push(rule);
+    }
+    return rulesResponse;
+  }
+  _readString(buffer) {
+    const endOfName = buffer.indexOf(0);
+    const stringBuffer = buffer.subarray(0, endOfName);
+    const modifiedBuffer = buffer.slice(endOfName + 1);
+    return [stringBuffer.toString("utf-8"), modifiedBuffer];
+  }
+  _readUInt8(buffer) {
+    return [buffer.readUInt8(), buffer.slice(1)];
+  }
+  _readInt16LE(buffer) {
+    return [buffer.readInt16LE(), buffer.slice(2)];
+  }
+  _readPlayer(buffer) {
+    let player = {};
+    [player.index, buffer] = this._readUInt8(buffer);
+    [player.name, buffer] = this._readString(buffer);
+    player.score = buffer.readInt32LE();
+    buffer = buffer.slice(4);
+    player.duration = buffer.readFloatLE();
+    buffer = buffer.slice(4);
+    return [player, buffer];
+  }
+  _readRule(buffer) {
+    let rule = {};
+    [rule.name, buffer] = this._readString(buffer);
+    [rule.value, buffer] = this._readString(buffer);
+    return [rule, buffer];
+  }
+}
+(function(exports) {
+  Object.defineProperty(exports, "__esModule", { value: true });
+  exports.queryGameServerRules = exports.queryGameServerPlayer = exports.queryGameServerInfo = exports.REGIONS = exports.queryMasterServer = void 0;
+  var masterServer_1 = masterServer;
+  Object.defineProperty(exports, "queryMasterServer", { enumerable: true, get: function() {
+    return masterServer_1.queryMasterServer;
+  } });
+  var masterServerTypes_1 = masterServerTypes;
+  Object.defineProperty(exports, "REGIONS", { enumerable: true, get: function() {
+    return masterServerTypes_1.REGIONS;
+  } });
+  var gameServer_1 = gameServer;
+  Object.defineProperty(exports, "queryGameServerInfo", { enumerable: true, get: function() {
+    return gameServer_1.queryGameServerInfo;
+  } });
+  Object.defineProperty(exports, "queryGameServerPlayer", { enumerable: true, get: function() {
+    return gameServer_1.queryGameServerPlayer;
+  } });
+  Object.defineProperty(exports, "queryGameServerRules", { enumerable: true, get: function() {
+    return gameServer_1.queryGameServerRules;
+  } });
+})(lib);
 class SteamQueryService {
   constructor() {
     __publicField(this, "lastServerInfo", null);
@@ -24822,6 +24742,7 @@ class SteamQueryService {
    * Aucun mot de passe requis - informations publiques
    */
   async getPublicServerInfo() {
+    var _a, _b;
     const now = Date.now();
     if (this.lastServerInfo && now - this.lastQueryTime < this.CACHE_DURATION) {
       return this.lastServerInfo;
@@ -24829,25 +24750,34 @@ class SteamQueryService {
     try {
       const startTime = Date.now();
       const queryPort = config.server.queryPort || config.server.port;
-      console.log(`🔍 Steam Query vers ${config.server.ip}:${queryPort}...`);
-      const serverInfo = await this.queryServerInfo(config.server.ip, queryPort);
-      console.log("Info: Server info:", serverInfo);
-      const ping = Date.now() - startTime;
+      const host = `${config.server.ip}:${queryPort}`;
+      console.log(`🔍 Steam Query via lib vers ${host}...`);
+      const info = await lib.queryGameServerInfo(
+        host,
+        1,
+        ((_a = config == null ? void 0 : config.steamQuery) == null ? void 0 : _a.timeout) ?? 3e3
+      );
       let playerList = [];
       try {
-        playerList = await this.queryPlayerList(config.server.ip, config.server.port);
+        const players = await lib.queryGameServerPlayer(
+          host,
+          1,
+          ((_b = config == null ? void 0 : config.steamQuery) == null ? void 0 : _b.timeout) ?? 3e3
+        );
+        playerList = Array.isArray(players) ? players.map((p) => p == null ? void 0 : p.name).filter(Boolean) : [];
       } catch (playerError) {
         console.log("Info: Liste des joueurs non disponible");
       }
+      const ping = Date.now() - startTime;
       const publicInfo = {
-        playerCount: serverInfo.players || 0,
-        maxPlayers: serverInfo.maxPlayers || config.server.maxSlots,
-        serverName: serverInfo.name || config.server.name,
-        map: serverInfo.map || config.server.map,
-        gameMode: serverInfo.game || config.server.gameMode,
+        playerCount: (info == null ? void 0 : info.players) ?? 0,
+        maxPlayers: (info == null ? void 0 : info.maxPlayers) ?? config.server.maxSlots,
+        serverName: (info == null ? void 0 : info.name) ?? config.server.name,
+        map: (info == null ? void 0 : info.map) ?? config.server.map,
+        gameMode: (info == null ? void 0 : info.game) ?? config.server.gameMode,
         ping,
         isOnline: true,
-        version: serverInfo.version || "Unknown",
+        version: (info == null ? void 0 : info.version) ?? "Unknown",
         playerList
       };
       this.lastServerInfo = publicInfo;
@@ -24872,117 +24802,21 @@ class SteamQueryService {
       return offlineInfo;
     }
   }
-  /**
-   * Query A2S_INFO - Informations serveur (protocole Steam natif)
-   */
-  async queryServerInfo(ip, port) {
-    return new Promise((resolve2, reject) => {
-      const client = dgram.createSocket("udp4");
-      const timeout = setTimeout(() => {
-        client.close();
-        reject(new Error("Timeout"));
-      }, 3e3);
-      const packet2 = Buffer.from([
-        255,
-        255,
-        255,
-        255,
-        // Header
-        84,
-        // A2S_INFO
-        83,
-        111,
-        117,
-        114,
-        99,
-        101,
-        32,
-        69,
-        110,
-        103,
-        105,
-        110,
-        101,
-        32,
-        81,
-        117,
-        101,
-        114,
-        121,
-        0
-        // "Source Engine Query"
-      ]);
-      client.on("message", (msg) => {
-        clearTimeout(timeout);
-        client.close();
-        try {
-          const response = this.parseA2SInfoResponse(msg);
-          resolve2(response);
-        } catch (parseError) {
-          reject(parseError);
-        }
-      });
-      client.on("error", (err) => {
-        clearTimeout(timeout);
-        client.close();
-        reject(err);
-      });
-      client.send(packet2, port, ip);
-    });
-  }
-  /**
-   * Parser la réponse A2S_INFO
-   */
-  parseA2SInfoResponse(buffer) {
-    let offset = 4;
-    const type2 = buffer.readUInt8(offset++);
-    if (type2 !== 73) {
-      throw new Error("Invalid A2S_INFO response");
-    }
-    const protocol = buffer.readUInt8(offset++);
-    const nameStart = offset;
-    while (buffer[offset] !== 0 && offset < buffer.length) offset++;
-    const name = buffer.toString("utf8", nameStart, offset);
-    offset++;
-    const mapStart = offset;
-    while (buffer[offset] !== 0 && offset < buffer.length) offset++;
-    const map2 = buffer.toString("utf8", mapStart, offset);
-    offset++;
-    const folderStart = offset;
-    while (buffer[offset] !== 0 && offset < buffer.length) offset++;
-    const folder = buffer.toString("utf8", folderStart, offset);
-    offset++;
-    const gameStart = offset;
-    while (buffer[offset] !== 0 && offset < buffer.length) offset++;
-    const game = buffer.toString("utf8", gameStart, offset);
-    offset++;
-    offset += 2;
-    const players = buffer.readUInt8(offset++);
-    const maxPlayers = buffer.readUInt8(offset++);
-    return {
-      protocol,
-      name,
-      map: map2,
-      folder,
-      game,
-      players,
-      maxPlayers,
-      version: "Steam"
-    };
-  }
-  /**
-   * Query simple de la liste des joueurs
-   */
-  async queryPlayerList(_ip, _port) {
-    return [];
-  }
+  // Les implémentations UDP natives sont remplacées par la librairie steam-server-query
   /**
    * Ping simple du serveur
    */
   async pingServer() {
+    var _a;
     try {
       const startTime = Date.now();
-      await this.queryServerInfo(config.server.ip, config.server.port);
+      const queryPort = config.server.queryPort || config.server.port;
+      const host = `${config.server.ip}:${queryPort}`;
+      await lib.queryGameServerInfo(
+        host,
+        1,
+        ((_a = config == null ? void 0 : config.steamQuery) == null ? void 0 : _a.timeout) ?? 3e3
+      );
       const ping = Date.now() - startTime;
       return { online: true, ping };
     } catch (error2) {
@@ -25000,11 +24834,18 @@ class SteamQueryService {
    * Obtenir seulement le nombre de joueurs (requête très rapide)
    */
   async getPlayerCount() {
+    var _a;
     try {
-      const serverInfo = await this.queryServerInfo(config.server.ip, config.server.port);
+      const queryPort = config.server.queryPort || config.server.port;
+      const host = `${config.server.ip}:${queryPort}`;
+      const serverInfo = await lib.queryGameServerInfo(
+        host,
+        1,
+        ((_a = config == null ? void 0 : config.steamQuery) == null ? void 0 : _a.timeout) ?? 3e3
+      );
       return {
-        count: serverInfo.players || 0,
-        max: serverInfo.maxPlayers || config.server.maxSlots
+        count: (serverInfo == null ? void 0 : serverInfo.players) ?? 0,
+        max: (serverInfo == null ? void 0 : serverInfo.maxPlayers) ?? config.server.maxSlots
       };
     } catch (error2) {
       return { count: 0, max: config.server.maxSlots };
@@ -25016,7 +24857,6 @@ const store = new ElectronStore({
   cwd: "arma3-data",
   fileExtension: "json"
 });
-let rconService = null;
 let newsService = null;
 let steamQueryService = null;
 async function getArma3PathFromRegistry() {
@@ -25047,11 +24887,7 @@ function sendMessage(win2, message, success, error2, data, fileProgress, timeRem
   });
 }
 function setupIpcHandlers(win2) {
-  if (config.rcon.enabled && config.rcon.password) {
-    rconService = new RconService();
-    console.log("✅ RCON activé avec mot de passe");
-  }
-  if (config.steamQuery.enabled) {
+  {
     steamQueryService = new SteamQueryService();
     console.log(`✅ Steam Query activé pour ${config.server.ip}:${config.server.port}`);
     setInterval(async () => {
@@ -25257,6 +25093,26 @@ function setupIpcHandlers(win2) {
       win2.close();
     }, 5e3);
   });
+  ipcMain$1.handle("connect-server", async () => {
+    const arma3Path = store.get("arma3Path");
+    const defaultParamsx64 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi_x64 -hugePages -noPause -noPauseAudio";
+    const defaultParamsx86 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi -hugePages -noPause -noPauseAudio";
+    if (!arma3Path) return;
+    const is64bit = process.arch === "x64";
+    const exeName = is64bit ? "arma3_x64.exe" : "arma3.exe";
+    const defaultParams = is64bit ? defaultParamsx64 : defaultParamsx86;
+    const arma3PathExe = path$z.join(arma3Path, exeName);
+    if (!fs.existsSync(arma3PathExe)) {
+      sendMessage(win2, "launch-game-error", void 0, `Impossible de trouver ${exeName}`);
+      return;
+    }
+    const connectArgs = `-connect=${config.server.ip} -port=${config.server.port}`;
+    spawn$1(arma3PathExe, [`${defaultParams} ${connectArgs}`]);
+    sendMessage(win2, "launch-game-success", "Jeu lancé — connexion au serveur en cours");
+    setTimeout(() => {
+      win2.close();
+    }, 5e3);
+  });
   ipcMain$1.handle("get-news", async () => {
     if (!newsService) return [];
     try {
@@ -25297,28 +25153,12 @@ function setupIpcHandlers(win2) {
         console.error("Erreur Steam Query:", error2);
       }
     }
-    if (rconService) {
-      try {
-        return await rconService.getServerInfo();
-      } catch (error2) {
-        console.error("Erreur RCON:", error2);
-      }
-    }
     return null;
-  });
-  ipcMain$1.handle("execute-rcon-command", async (_, command) => {
-    if (!rconService) {
-      throw new Error("RCON non disponible");
-    }
-    return await rconService.executeCommand(command);
   });
   ipcMain$1.handle("open-url", async (_, url) => {
     shell$1.openExternal(url);
   });
   ipcMain$1.on("close-app", () => {
-    if (rconService) {
-      rconService.disconnect();
-    }
     win2.close();
   });
   ipcMain$1.on("minimize-app", () => {
@@ -25424,9 +25264,8 @@ async function checkModsWithManifest(win2) {
         await fs.remove(filePath);
       }
     }
-    if (config.maintenance) {
-      sendMessage(win2, "maintenance", "Le serveur est en maintenance, merci de réessayer plus tard");
-    } else if (delta.toDownload.length > 0) {
+    if (config.maintenance) ;
+    else if (delta.toDownload.length > 0) {
       const sizeGB = (delta.totalDownloadSize / 1024 / 1024 / 1024).toFixed(2);
       sendMessage(
         win2,
@@ -25450,9 +25289,6 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path$z.join(process.env.APP_ROOT
 let win;
 main$1.autoUpdater.autoDownload = true;
 main$1.autoUpdater.autoInstallOnAppQuit = true;
-main$1.autoUpdater.allowPrerelease = true;
-console.log("🔎 App version:", app$1.getVersion());
-console.log("🔧 updateConfigPath:", main$1.autoUpdater.updateConfigPath);
 main$1.autoUpdater.on("update-available", () => {
   if (win) {
     win.webContents.send("update-available");
@@ -25511,16 +25347,6 @@ if (!gotTheLock) {
       }
     });
     setupIpcHandlers(win);
-    try {
-      main$1.autoUpdater.setFeedURL({
-        provider: "github",
-        owner: "Joaquine-dev",
-        repo: "arma3launcher",
-        releaseType: "release"
-      });
-    } catch (e) {
-      console.warn("setFeedURL non supporté dans ce contexte:", e);
-    }
     main$1.autoUpdater.checkForUpdates().catch(console.error);
     if (VITE_DEV_SERVER_URL) {
       win.loadURL(VITE_DEV_SERVER_URL);

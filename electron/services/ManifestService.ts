@@ -79,9 +79,6 @@ export class ManifestService {
       throw new Error("Impossible de récupérer le manifest serveur");
     }
 
-    console.log(`🔍 Comparaison manifests:`);
-    console.log(`   Server: ${serverManifest.files.length} fichiers, timestamp: ${new Date(serverManifest.timestamp).toLocaleString()}`);
-    console.log(`   Local: ${localManifest?.files.length || 0} fichiers, timestamp: ${localManifest ? new Date(localManifest.timestamp).toLocaleString() : 'N/A'}`);
 
     const toDownload: ModFile[] = [];
     const toDelete: string[] = [];

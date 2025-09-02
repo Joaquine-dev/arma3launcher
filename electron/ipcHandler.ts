@@ -8,7 +8,6 @@ import { spawn } from "child_process";
 
 import { downloadFileWithResume } from "./services/ModDownloadService";
 import { ManifestService } from "./services/ManifestService";
-import { RconService } from "./services/RconService";
 import { NewsService } from "./services/NewsService";
 import { SteamQueryService } from "./services/SteamQueryService";
 
@@ -20,7 +19,6 @@ const store = new Store({
 });
 
 // Services modernes
-let rconService: RconService | null = null;
 let newsService: NewsService | null = null;
 let steamQueryService: SteamQueryService | null = null;
 
@@ -71,12 +69,6 @@ function sendMessage(
 
 // Gestionnaire principal IPC
 export function setupIpcHandlers(win: BrowserWindow) {
-  // Initialiser les services modernes
-  if (config.rcon.enabled && config.rcon.password) {
-    rconService = new RconService();
-    console.log("✅ RCON activé avec mot de passe");
-  }
-
   // Initialiser Steam Query (SANS MOT DE PASSE)
   if (config.steamQuery.enabled) {
     steamQueryService = new SteamQueryService();
@@ -334,6 +326,34 @@ export function setupIpcHandlers(win: BrowserWindow) {
     }, 5000);
   });
 
+  // Connexion directe au serveur (lancement + -connect/-port)
+  ipcMain.handle("connect-server", async () => {
+    const arma3Path = store.get("arma3Path") as string | null;
+
+    const defaultParamsx64 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi_x64 -hugePages -noPause -noPauseAudio";
+    const defaultParamsx86 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi -hugePages -noPause -noPauseAudio";
+
+    if (!arma3Path) return;
+
+    const is64bit = process.arch === 'x64';
+    const exeName = is64bit ? "arma3_x64.exe" : "arma3.exe";
+    const defaultParams = is64bit ? defaultParamsx64 : defaultParamsx86;
+    const arma3PathExe = path.join(arma3Path, exeName);
+
+    if (!fs.existsSync(arma3PathExe)) {
+      sendMessage(win, "launch-game-error", undefined, `Impossible de trouver ${exeName}`);
+      return;
+    }
+
+    const connectArgs = `-connect=${config.server.ip} -port=${config.server.port}`;
+    spawn(arma3PathExe, [`${defaultParams} ${connectArgs}`]);
+    sendMessage(win, "launch-game-success", "Jeu lancé — connexion au serveur en cours");
+
+    setTimeout(() => {
+      win.close();
+    }, 5000);
+  });
+
   // Gestionnaire des actualités
   ipcMain.handle("get-news", async () => {
     if (!newsService) return [];
@@ -378,25 +398,8 @@ export function setupIpcHandlers(win: BrowserWindow) {
       }
     }
 
-    // Priorité 2: RCON (si configuré avec password)
-    if (rconService) {
-      try {
-        return await rconService.getServerInfo();
-      } catch (error) {
-        console.error("Erreur RCON:", error);
-      }
-    }
-
     // Aucune info disponible - retourner null pour indiquer "hors ligne"
     return null;
-  });
-
-  // Exécuter une commande RCON personnalisée
-  ipcMain.handle("execute-rcon-command", async (_, command: string) => {
-    if (!rconService) {
-      throw new Error("RCON non disponible");
-    }
-    return await rconService.executeCommand(command);
   });
 
   // Ouvrir un lien dans le navigateur
@@ -406,9 +409,6 @@ export function setupIpcHandlers(win: BrowserWindow) {
 
   // Contrôles de fenêtre
   ipcMain.on("close-app", () => {
-    if (rconService) {
-      rconService.disconnect();
-    }
     win.close();
   });
 
