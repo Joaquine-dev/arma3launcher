@@ -1,11 +1,11 @@
 {
-  "name": "ar3url_launcher",
+  "name": "arma3_launcher",
   "private": false,
   "version": "5.0.0",
   "type": "module",
-  "description": "Launcher pour A3URL",
+  "description": "Launcher pour Arma 3",
   "author": "Joaquine",
-  "productName": "A3URL Launcher",
+  "productName": "Arma 3 Launcher",
   "scripts": {
     "dev": "vite",
     "build": "node scripts/encrypt-config.js && tsc && vite build && electron-builder && node scripts/encrypt-config.js restore",
@@ -63,7 +63,7 @@
   "main": "dist-electron/main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Joaquinee/AR3URL-Launcher.git"
+    "url": "https://github.com/Joaquine-dev/arma3launcher.git"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
