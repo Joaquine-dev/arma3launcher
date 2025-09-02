@@ -1,4 +1,4 @@
-# 🎮 A3URL Launcher - Serveur Roleplay Arma 3
+# 🎮 Arpa 3 laucnher- Serveur Roleplay Arma 3
 
 Un launcher moderne et optimisé pour votre serveur Roleplay Arma 3 avec synchronisation intelligente des mods.
 
@@ -12,7 +12,7 @@ Un launcher moderne et optimisé pour votre serveur Roleplay Arma 3 avec synchro
 ### ⚡ Installation rapide
 ```bash
 # Cloner le projet
-git clone https://github.com/Joaquinee/AR3URL-Launcher.git
+git clone https://github.com/Joaquine-dev/arma3launcher.git
 cd AR3URL-Launcher
 
 # Installer les dépendances
