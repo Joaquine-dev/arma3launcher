@@ -20,7 +20,7 @@ class ConfigCrypto {
     const appVersion = "5.0.0";
     const machineId = process.env.COMPUTERNAME || process.env.HOSTNAME || 'default';
 
-    const keySource = `${appName}-${appVersion}-${machineId}-A3URL-LAUNCHER-SECRET`;
+    const keySource = `${appName}-${appVersion}-${machineId}-Arma-LAUNCHER-SECRET`;
     return crypto.scryptSync(keySource, 'salt', this.KEY_LENGTH);
   }
 

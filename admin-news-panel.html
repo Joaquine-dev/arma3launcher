@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A3URL RP - Panel Admin Actualités</title>
+  <title>Arma RP - Panel Admin Actualités</title>
   <style>
     * {
       margin: 0;
@@ -252,7 +252,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>🎮 A3URL RP - Panel Admin Actualités</h1>
+      <h1>🎮 Arma RP - Panel Admin Actualités</h1>
       <p>Gérez facilement les actualités de votre serveur Roleplay</p>
     </div>
 
@@ -297,7 +297,7 @@
         <div class="form-row">
           <div class="form-group">
             <label for="author">Auteur</label>
-            <input type="text" id="author" name="author" placeholder="Nom de l'administrateur" value="Admin A3URL">
+            <input type="text" id="author" name="author" placeholder="Nom de l'administrateur" value="Admin Arma">
           </div>
 
           <div class="form-group">
@@ -373,7 +373,7 @@
 
     // Charger les actualités existantes depuis localStorage
     function loadExistingNews() {
-      const stored = localStorage.getItem('a3url_news');
+      const stored = localStorage.getItem('Arma_news');
       if (stored) {
         try {
           newsData = JSON.parse(stored);
@@ -466,7 +466,7 @@
         id: Date.now().toString(),
         title: formData.get('title'),
         content: formData.get('content'),
-        author: formData.get('author') || 'Admin A3URL',
+        author: formData.get('author') || 'Admin Arma',
         type: formData.get('type'),
         priority: formData.get('priority'),
         publishedAt: Date.now(),
@@ -489,7 +489,7 @@
       newsData.lastUpdated = Date.now();
 
       // Sauvegarder localement
-      localStorage.setItem('a3url_news', JSON.stringify(newsData));
+      localStorage.setItem('Arma_news', JSON.stringify(newsData));
 
       // Afficher
       displayNewsList();
@@ -507,7 +507,7 @@
       if (confirm('Êtes-vous sûr de vouloir supprimer cette actualité ?')) {
         newsData.items = newsData.items.filter(item => item.id !== id);
         newsData.lastUpdated = Date.now();
-        localStorage.setItem('a3url_news', JSON.stringify(newsData));
+        localStorage.setItem('Arma_news', JSON.stringify(newsData));
         displayNewsList();
         generateJSON();
       }

@@ -20,7 +20,7 @@ export class CryptoService {
     const machineId = process.env.COMPUTERNAME || process.env.HOSTNAME || 'default';
 
     // Créer une clé unique mais reproductible pour cette installation
-    const keySource = `${appName}-${appVersion}-${machineId}-A3URL-LAUNCHER-SECRET`;
+    const keySource = `${appName}-${appVersion}-${machineId}-Arma-LAUNCHER-SECRET`;
     return crypto.scryptSync(keySource, 'salt', CryptoService.KEY_LENGTH);
   }
 

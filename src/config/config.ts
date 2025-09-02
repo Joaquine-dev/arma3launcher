@@ -6,15 +6,15 @@ export const config = {
     version: "5.0.0",
     description: "Launcher pour serveur Arma 3 Roleplay",
     author: "Équipe Arma 3",
-    website: "https://a3url.com",
-    discord: "https://discord.gg/a3url",
+    website: "https://Arma.com",
+    discord: "https://discord.gg/Arma",
     github: "https://github.com/Joaquinee/AR3URL-Launcher"
   },
 
   // 🖥️ Informations serveur (selon votre LGSM)
   server: {
     name: "Arma 3 Roleplay Server",
-    shortName: "A3URL RP",
+    shortName: "Arma RP",
     description: "Serveur Roleplay français • Map Altis",
     ip: "82.29.170.30",
     port: 2302,        // Port de jeu
@@ -26,13 +26,13 @@ export const config = {
     difficulty: "Vétéran",
     perspective: "1ère/3ème personne",
     whitelist: false,
-    community: "A3URL Community",
-    website: "https://a3url.com"
+    community: "Arma Community",
+    website: "https://Arma.com"
   },
 
   // 📁 Configuration des mods
   mods: {
-    folderName: "@A3URL",
+    folderName: "@Arma",
     urlMods: "http://82.29.170.30/mods",
     urlRessources: "https://your-server.com/resources",
     manifestUrl: "http://82.29.170.30/mods/manifest.json",

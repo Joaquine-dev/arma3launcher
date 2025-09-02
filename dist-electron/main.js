@@ -156,7 +156,7 @@ function requireMs() {
   var d = h * 24;
   var w = d * 7;
   var y = d * 365.25;
-  ms = function(val, options) {
+  ms = function (val, options) {
     options = options || {};
     var type2 = typeof val;
     if (type2 === "string" && val.length > 0) {
@@ -444,7 +444,7 @@ var hasRequiredBrowser;
 function requireBrowser() {
   if (hasRequiredBrowser) return browser.exports;
   hasRequiredBrowser = 1;
-  (function(module, exports) {
+  (function (module, exports) {
     exports.formatArgs = formatArgs;
     exports.save = save;
     exports.load = load2;
@@ -546,10 +546,10 @@ function requireBrowser() {
       }
       let m;
       return typeof document !== "undefined" && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance || // Is firebug? http://stackoverflow.com/a/398120/376773
-      typeof window !== "undefined" && window.console && (window.console.firebug || window.console.exception && window.console.table) || // Is firefox >= v31?
-      // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-      typeof navigator !== "undefined" && navigator.userAgent && (m = navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/)) && parseInt(m[1], 10) >= 31 || // Double check webkit in userAgent just in case we are in a worker
-      typeof navigator !== "undefined" && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
+        typeof window !== "undefined" && window.console && (window.console.firebug || window.console.exception && window.console.table) || // Is firefox >= v31?
+        // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+        typeof navigator !== "undefined" && navigator.userAgent && (m = navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/)) && parseInt(m[1], 10) >= 31 || // Double check webkit in userAgent just in case we are in a worker
+        typeof navigator !== "undefined" && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
     }
     function formatArgs(args) {
       args[0] = (this.useColors ? "%c" : "") + this.namespace + (this.useColors ? " %c" : " ") + args[0] + (this.useColors ? "%c " : " ") + "+" + module.exports.humanize(this.diff);
@@ -602,7 +602,7 @@ function requireBrowser() {
     }
     module.exports = requireCommon()(exports);
     const { formatters } = module.exports;
-    formatters.j = function(v) {
+    formatters.j = function (v) {
       try {
         return JSON.stringify(v);
       } catch (error2) {
@@ -732,7 +732,7 @@ var hasRequiredNode;
 function requireNode() {
   if (hasRequiredNode) return node.exports;
   hasRequiredNode = 1;
-  (function(module, exports) {
+  (function (module, exports) {
     const tty = require$$1$1;
     const util2 = require$$1$2;
     exports.init = init;
@@ -893,11 +893,11 @@ function requireNode() {
     }
     module.exports = requireCommon()(exports);
     const { formatters } = module.exports;
-    formatters.o = function(v) {
+    formatters.o = function (v) {
       this.inspectOpts.colors = this.useColors;
       return util2.inspect(v, this.inspectOpts).split("\n").map((str2) => str2.trim()).join(" ");
     };
-    formatters.O = function(v) {
+    formatters.O = function (v) {
       this.inspectOpts.colors = this.useColors;
       return util2.inspect(v, this.inspectOpts);
     };
@@ -1602,7 +1602,7 @@ function getVariant(bits) {
   }
 }
 var UuidEncoding;
-(function(UuidEncoding2) {
+(function (UuidEncoding2) {
   UuidEncoding2[UuidEncoding2["ASCII"] = 0] = "ASCII";
   UuidEncoding2[UuidEncoding2["BINARY"] = 1] = "BINARY";
   UuidEncoding2[UuidEncoding2["OBJECT"] = 2] = "OBJECT";
@@ -1640,9 +1640,9 @@ function stringify$6(buffer) {
 uuid.nil = new UUID("00000000-0000-0000-0000-000000000000");
 var xml = {};
 var sax$1 = {};
-(function(exports) {
-  (function(sax2) {
-    sax2.parser = function(strict, opt) {
+(function (exports) {
+  (function (sax2) {
+    sax2.parser = function (strict, opt) {
       return new SAXParser(strict, opt);
     };
     sax2.SAXParser = SAXParser;
@@ -1716,7 +1716,7 @@ var sax$1 = {};
       emit(parser, "onready");
     }
     if (!Object.create) {
-      Object.create = function(o) {
+      Object.create = function (o) {
         function F() {
         }
         F.prototype = o;
@@ -1725,7 +1725,7 @@ var sax$1 = {};
       };
     }
     if (!Object.keys) {
-      Object.keys = function(o) {
+      Object.keys = function (o) {
         var a = [];
         for (var i in o) if (o.hasOwnProperty(i)) a.push(i);
         return a;
@@ -1775,18 +1775,18 @@ var sax$1 = {};
       }
     }
     SAXParser.prototype = {
-      end: function() {
+      end: function () {
         end(this);
       },
       write,
-      resume: function() {
+      resume: function () {
         this.error = null;
         return this;
       },
-      close: function() {
+      close: function () {
         return this.write(null);
       },
-      flush: function() {
+      flush: function () {
         flushBuffers(this);
       }
     };
@@ -1794,12 +1794,12 @@ var sax$1 = {};
     try {
       Stream2 = require("stream").Stream;
     } catch (ex) {
-      Stream2 = function() {
+      Stream2 = function () {
       };
     }
-    if (!Stream2) Stream2 = function() {
+    if (!Stream2) Stream2 = function () {
     };
-    var streamWraps = sax2.EVENTS.filter(function(ev) {
+    var streamWraps = sax2.EVENTS.filter(function (ev) {
       return ev !== "error" && ev !== "end";
     });
     function createStream(strict, opt) {
@@ -1814,20 +1814,20 @@ var sax$1 = {};
       this.writable = true;
       this.readable = true;
       var me = this;
-      this._parser.onend = function() {
+      this._parser.onend = function () {
         me.emit("end");
       };
-      this._parser.onerror = function(er) {
+      this._parser.onerror = function (er) {
         me.emit("error", er);
         me._parser.error = null;
       };
       this._decoder = null;
-      streamWraps.forEach(function(ev) {
+      streamWraps.forEach(function (ev) {
         Object.defineProperty(me, "on" + ev, {
-          get: function() {
+          get: function () {
             return me._parser["on" + ev];
           },
-          set: function(h) {
+          set: function (h) {
             if (!h) {
               me.removeAllListeners(ev);
               me._parser["on" + ev] = h;
@@ -1845,7 +1845,7 @@ var sax$1 = {};
         value: SAXStream
       }
     });
-    SAXStream.prototype.write = function(data) {
+    SAXStream.prototype.write = function (data) {
       if (typeof Buffer === "function" && typeof Buffer.isBuffer === "function" && Buffer.isBuffer(data)) {
         if (!this._decoder) {
           var SD = require$$1$4.StringDecoder;
@@ -1857,17 +1857,17 @@ var sax$1 = {};
       this.emit("data", data);
       return true;
     };
-    SAXStream.prototype.end = function(chunk) {
+    SAXStream.prototype.end = function (chunk) {
       if (chunk && chunk.length) {
         this.write(chunk);
       }
       this._parser.end();
       return true;
     };
-    SAXStream.prototype.on = function(ev, handler) {
+    SAXStream.prototype.on = function (ev, handler) {
       var me = this;
       if (!me._parser["on" + ev] && streamWraps.indexOf(ev) !== -1) {
-        me._parser["on" + ev] = function() {
+        me._parser["on" + ev] = function () {
           var args = arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments);
           args.splice(0, 0, ev);
           me.emit.apply(me, args);
@@ -2236,7 +2236,7 @@ var sax$1 = {};
       "hearts": 9829,
       "diams": 9830
     };
-    Object.keys(sax2.ENTITIES).forEach(function(key) {
+    Object.keys(sax2.ENTITIES).forEach(function (key) {
       var e = sax2.ENTITIES[key];
       var s2 = typeof e === "number" ? String.fromCharCode(e) : e;
       sax2.ENTITIES[key] = s2;
@@ -2368,7 +2368,7 @@ var sax$1 = {};
         }
         var parent = parser.tags[parser.tags.length - 1] || parser;
         if (tag.ns && parent.ns !== tag.ns) {
-          Object.keys(tag.ns).forEach(function(p) {
+          Object.keys(tag.ns).forEach(function (p) {
             emitNode(parser, "onopennamespace", {
               prefix: p,
               uri: tag.ns[p]
@@ -2464,7 +2464,7 @@ var sax$1 = {};
         }
         var parent = parser.tags[parser.tags.length - 1] || parser;
         if (parser.opt.xmlns && tag.ns !== parent.ns) {
-          Object.keys(tag.ns).forEach(function(p) {
+          Object.keys(tag.ns).forEach(function (p) {
             var n = tag.ns[p];
             emitNode(parser, "onclosenamespace", { prefix: p, uri: n });
           });
@@ -2617,7 +2617,7 @@ var sax$1 = {};
             if (c === "!") {
               parser.state = S.SGML_DECL;
               parser.sgmlDecl = "";
-            } else if (isWhitespace2(c)) ;
+            } else if (isWhitespace2(c));
             else if (isMatch(nameStart, c)) {
               parser.state = S.OPEN_TAG;
               parser.tagName = c;
@@ -3048,10 +3048,10 @@ var sax$1 = {};
     }
     /*! http://mths.be/fromcodepoint v0.1.0 by @mathias */
     if (!String.fromCodePoint) {
-      (function() {
+      (function () {
         var stringFromCharCode = String.fromCharCode;
         var floor = Math.floor;
-        var fromCodePoint = function() {
+        var fromCodePoint = function () {
           var MAX_SIZE = 16384;
           var codeUnits = [];
           var highSurrogate;
@@ -3065,9 +3065,9 @@ var sax$1 = {};
           while (++index < length) {
             var codePoint = Number(arguments[index]);
             if (!isFinite(codePoint) || // `NaN`, `+Infinity`, or `-Infinity`
-            codePoint < 0 || // not a valid Unicode code point
-            codePoint > 1114111 || // not a valid Unicode code point
-            floor(codePoint) !== codePoint) {
+              codePoint < 0 || // not a valid Unicode code point
+              codePoint > 1114111 || // not a valid Unicode code point
+              floor(codePoint) !== codePoint) {
               throw RangeError("Invalid code point: " + codePoint);
             }
             if (codePoint <= 65535) {
@@ -3260,86 +3260,130 @@ async function retry$1(task, retryCount, interval, backoff = 0, attempt = 0, sho
     }
   }
 }
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.CURRENT_APP_PACKAGE_FILE_NAME = exports.CURRENT_APP_INSTALLER_FILE_NAME = exports.retry = exports.MemoLazy = exports.newError = exports.XElement = exports.parseXml = exports.ProgressCallbackTransform = exports.UUID = exports.parseDn = exports.githubUrl = exports.getS3LikeProviderBaseUrl = exports.configureRequestUrl = exports.parseJson = exports.safeStringifyJson = exports.configureRequestOptionsFromUrl = exports.configureRequestOptions = exports.safeGetHeader = exports.DigestTransform = exports.HttpExecutor = exports.createHttpError = exports.HttpError = exports.CancellationError = exports.CancellationToken = void 0;
   exports.asArray = asArray;
   var CancellationToken_12 = CancellationToken$1;
-  Object.defineProperty(exports, "CancellationToken", { enumerable: true, get: function() {
-    return CancellationToken_12.CancellationToken;
-  } });
-  Object.defineProperty(exports, "CancellationError", { enumerable: true, get: function() {
-    return CancellationToken_12.CancellationError;
-  } });
+  Object.defineProperty(exports, "CancellationToken", {
+    enumerable: true, get: function () {
+      return CancellationToken_12.CancellationToken;
+    }
+  });
+  Object.defineProperty(exports, "CancellationError", {
+    enumerable: true, get: function () {
+      return CancellationToken_12.CancellationError;
+    }
+  });
   var httpExecutor_1 = httpExecutor;
-  Object.defineProperty(exports, "HttpError", { enumerable: true, get: function() {
-    return httpExecutor_1.HttpError;
-  } });
-  Object.defineProperty(exports, "createHttpError", { enumerable: true, get: function() {
-    return httpExecutor_1.createHttpError;
-  } });
-  Object.defineProperty(exports, "HttpExecutor", { enumerable: true, get: function() {
-    return httpExecutor_1.HttpExecutor;
-  } });
-  Object.defineProperty(exports, "DigestTransform", { enumerable: true, get: function() {
-    return httpExecutor_1.DigestTransform;
-  } });
-  Object.defineProperty(exports, "safeGetHeader", { enumerable: true, get: function() {
-    return httpExecutor_1.safeGetHeader;
-  } });
-  Object.defineProperty(exports, "configureRequestOptions", { enumerable: true, get: function() {
-    return httpExecutor_1.configureRequestOptions;
-  } });
-  Object.defineProperty(exports, "configureRequestOptionsFromUrl", { enumerable: true, get: function() {
-    return httpExecutor_1.configureRequestOptionsFromUrl;
-  } });
-  Object.defineProperty(exports, "safeStringifyJson", { enumerable: true, get: function() {
-    return httpExecutor_1.safeStringifyJson;
-  } });
-  Object.defineProperty(exports, "parseJson", { enumerable: true, get: function() {
-    return httpExecutor_1.parseJson;
-  } });
-  Object.defineProperty(exports, "configureRequestUrl", { enumerable: true, get: function() {
-    return httpExecutor_1.configureRequestUrl;
-  } });
+  Object.defineProperty(exports, "HttpError", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.HttpError;
+    }
+  });
+  Object.defineProperty(exports, "createHttpError", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.createHttpError;
+    }
+  });
+  Object.defineProperty(exports, "HttpExecutor", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.HttpExecutor;
+    }
+  });
+  Object.defineProperty(exports, "DigestTransform", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.DigestTransform;
+    }
+  });
+  Object.defineProperty(exports, "safeGetHeader", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.safeGetHeader;
+    }
+  });
+  Object.defineProperty(exports, "configureRequestOptions", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.configureRequestOptions;
+    }
+  });
+  Object.defineProperty(exports, "configureRequestOptionsFromUrl", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.configureRequestOptionsFromUrl;
+    }
+  });
+  Object.defineProperty(exports, "safeStringifyJson", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.safeStringifyJson;
+    }
+  });
+  Object.defineProperty(exports, "parseJson", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.parseJson;
+    }
+  });
+  Object.defineProperty(exports, "configureRequestUrl", {
+    enumerable: true, get: function () {
+      return httpExecutor_1.configureRequestUrl;
+    }
+  });
   var publishOptions_1 = publishOptions;
-  Object.defineProperty(exports, "getS3LikeProviderBaseUrl", { enumerable: true, get: function() {
-    return publishOptions_1.getS3LikeProviderBaseUrl;
-  } });
-  Object.defineProperty(exports, "githubUrl", { enumerable: true, get: function() {
-    return publishOptions_1.githubUrl;
-  } });
+  Object.defineProperty(exports, "getS3LikeProviderBaseUrl", {
+    enumerable: true, get: function () {
+      return publishOptions_1.getS3LikeProviderBaseUrl;
+    }
+  });
+  Object.defineProperty(exports, "githubUrl", {
+    enumerable: true, get: function () {
+      return publishOptions_1.githubUrl;
+    }
+  });
   var rfc2253Parser_1 = rfc2253Parser;
-  Object.defineProperty(exports, "parseDn", { enumerable: true, get: function() {
-    return rfc2253Parser_1.parseDn;
-  } });
+  Object.defineProperty(exports, "parseDn", {
+    enumerable: true, get: function () {
+      return rfc2253Parser_1.parseDn;
+    }
+  });
   var uuid_1 = uuid;
-  Object.defineProperty(exports, "UUID", { enumerable: true, get: function() {
-    return uuid_1.UUID;
-  } });
+  Object.defineProperty(exports, "UUID", {
+    enumerable: true, get: function () {
+      return uuid_1.UUID;
+    }
+  });
   var ProgressCallbackTransform_12 = ProgressCallbackTransform$1;
-  Object.defineProperty(exports, "ProgressCallbackTransform", { enumerable: true, get: function() {
-    return ProgressCallbackTransform_12.ProgressCallbackTransform;
-  } });
+  Object.defineProperty(exports, "ProgressCallbackTransform", {
+    enumerable: true, get: function () {
+      return ProgressCallbackTransform_12.ProgressCallbackTransform;
+    }
+  });
   var xml_1 = xml;
-  Object.defineProperty(exports, "parseXml", { enumerable: true, get: function() {
-    return xml_1.parseXml;
-  } });
-  Object.defineProperty(exports, "XElement", { enumerable: true, get: function() {
-    return xml_1.XElement;
-  } });
+  Object.defineProperty(exports, "parseXml", {
+    enumerable: true, get: function () {
+      return xml_1.parseXml;
+    }
+  });
+  Object.defineProperty(exports, "XElement", {
+    enumerable: true, get: function () {
+      return xml_1.XElement;
+    }
+  });
   var error_12 = error$l;
-  Object.defineProperty(exports, "newError", { enumerable: true, get: function() {
-    return error_12.newError;
-  } });
+  Object.defineProperty(exports, "newError", {
+    enumerable: true, get: function () {
+      return error_12.newError;
+    }
+  });
   var MemoLazy_1 = MemoLazy$1;
-  Object.defineProperty(exports, "MemoLazy", { enumerable: true, get: function() {
-    return MemoLazy_1.MemoLazy;
-  } });
+  Object.defineProperty(exports, "MemoLazy", {
+    enumerable: true, get: function () {
+      return MemoLazy_1.MemoLazy;
+    }
+  });
   var retry_1 = retry$2;
-  Object.defineProperty(exports, "retry", { enumerable: true, get: function() {
-    return retry_1.retry;
-  } });
+  Object.defineProperty(exports, "retry", {
+    enumerable: true, get: function () {
+      return retry_1.retry;
+    }
+  });
   exports.CURRENT_APP_INSTALLER_FILE_NAME = "installer.exe";
   exports.CURRENT_APP_PACKAGE_FILE_NAME = "package.7z";
   function asArray(v) {
@@ -3354,8 +3398,8 @@ async function retry$1(task, retryCount, interval, backoff = 0, attempt = 0, sho
 })(out);
 var fs$A = {};
 var universalify$1 = {};
-universalify$1.fromCallback = function(fn) {
-  return Object.defineProperty(function(...args) {
+universalify$1.fromCallback = function (fn) {
+  return Object.defineProperty(function (...args) {
     if (typeof args[args.length - 1] === "function") fn.apply(this, args);
     else {
       return new Promise((resolve2, reject) => {
@@ -3365,8 +3409,8 @@ universalify$1.fromCallback = function(fn) {
     }
   }, "name", { value: fn.name });
 };
-universalify$1.fromPromise = function(fn) {
-  return Object.defineProperty(function(...args) {
+universalify$1.fromPromise = function (fn) {
+  return Object.defineProperty(function (...args) {
     const cb = args[args.length - 1];
     if (typeof cb !== "function") return fn.apply(this, args);
     else {
@@ -3379,7 +3423,7 @@ var constants$2 = require$$0$4;
 var origCwd = process.cwd;
 var cwd = null;
 var platform = process.env.GRACEFUL_FS_PLATFORM || process.platform;
-process.cwd = function() {
+process.cwd = function () {
   if (!cwd)
     cwd = origCwd.call(process);
   return cwd;
@@ -3390,7 +3434,7 @@ try {
 }
 if (typeof process.chdir === "function") {
   var chdir = process.chdir;
-  process.chdir = function(d) {
+  process.chdir = function (d) {
     cwd = null;
     chdir.call(process, d);
   };
@@ -3423,28 +3467,28 @@ function patch$3(fs2) {
   fs2.fstatSync = statFixSync(fs2.fstatSync);
   fs2.lstatSync = statFixSync(fs2.lstatSync);
   if (fs2.chmod && !fs2.lchmod) {
-    fs2.lchmod = function(path2, mode, cb) {
+    fs2.lchmod = function (path2, mode, cb) {
       if (cb) process.nextTick(cb);
     };
-    fs2.lchmodSync = function() {
+    fs2.lchmodSync = function () {
     };
   }
   if (fs2.chown && !fs2.lchown) {
-    fs2.lchown = function(path2, uid, gid, cb) {
+    fs2.lchown = function (path2, uid, gid, cb) {
       if (cb) process.nextTick(cb);
     };
-    fs2.lchownSync = function() {
+    fs2.lchownSync = function () {
     };
   }
   if (platform === "win32") {
-    fs2.rename = typeof fs2.rename !== "function" ? fs2.rename : function(fs$rename) {
+    fs2.rename = typeof fs2.rename !== "function" ? fs2.rename : function (fs$rename) {
       function rename2(from, to, cb) {
         var start = Date.now();
         var backoff = 0;
         fs$rename(from, to, function CB(er) {
           if (er && (er.code === "EACCES" || er.code === "EPERM" || er.code === "EBUSY") && Date.now() - start < 6e4) {
-            setTimeout(function() {
-              fs2.stat(to, function(stater, st) {
+            setTimeout(function () {
+              fs2.stat(to, function (stater, st) {
                 if (stater && stater.code === "ENOENT")
                   fs$rename(from, to, CB);
                 else
@@ -3462,12 +3506,12 @@ function patch$3(fs2) {
       return rename2;
     }(fs2.rename);
   }
-  fs2.read = typeof fs2.read !== "function" ? fs2.read : function(fs$read) {
+  fs2.read = typeof fs2.read !== "function" ? fs2.read : function (fs$read) {
     function read(fd, buffer, offset, length, position, callback_) {
       var callback;
       if (callback_ && typeof callback_ === "function") {
         var eagCounter = 0;
-        callback = function(er, _, __) {
+        callback = function (er, _, __) {
           if (er && er.code === "EAGAIN" && eagCounter < 10) {
             eagCounter++;
             return fs$read.call(fs2, fd, buffer, offset, length, position, callback);
@@ -3480,8 +3524,8 @@ function patch$3(fs2) {
     if (Object.setPrototypeOf) Object.setPrototypeOf(read, fs$read);
     return read;
   }(fs2.read);
-  fs2.readSync = typeof fs2.readSync !== "function" ? fs2.readSync : /* @__PURE__ */ function(fs$readSync) {
-    return function(fd, buffer, offset, length, position) {
+  fs2.readSync = typeof fs2.readSync !== "function" ? fs2.readSync : /* @__PURE__ */ function (fs$readSync) {
+    return function (fd, buffer, offset, length, position) {
       var eagCounter = 0;
       while (true) {
         try {
@@ -3497,25 +3541,25 @@ function patch$3(fs2) {
     };
   }(fs2.readSync);
   function patchLchmod(fs22) {
-    fs22.lchmod = function(path2, mode, callback) {
+    fs22.lchmod = function (path2, mode, callback) {
       fs22.open(
         path2,
         constants$2.O_WRONLY | constants$2.O_SYMLINK,
         mode,
-        function(err, fd) {
+        function (err, fd) {
           if (err) {
             if (callback) callback(err);
             return;
           }
-          fs22.fchmod(fd, mode, function(err2) {
-            fs22.close(fd, function(err22) {
+          fs22.fchmod(fd, mode, function (err2) {
+            fs22.close(fd, function (err22) {
               if (callback) callback(err2 || err22);
             });
           });
         }
       );
     };
-    fs22.lchmodSync = function(path2, mode) {
+    fs22.lchmodSync = function (path2, mode) {
       var fd = fs22.openSync(path2, constants$2.O_WRONLY | constants$2.O_SYMLINK, mode);
       var threw = true;
       var ret;
@@ -3537,20 +3581,20 @@ function patch$3(fs2) {
   }
   function patchLutimes(fs22) {
     if (constants$2.hasOwnProperty("O_SYMLINK") && fs22.futimes) {
-      fs22.lutimes = function(path2, at, mt, cb) {
-        fs22.open(path2, constants$2.O_SYMLINK, function(er, fd) {
+      fs22.lutimes = function (path2, at, mt, cb) {
+        fs22.open(path2, constants$2.O_SYMLINK, function (er, fd) {
           if (er) {
             if (cb) cb(er);
             return;
           }
-          fs22.futimes(fd, at, mt, function(er2) {
-            fs22.close(fd, function(er22) {
+          fs22.futimes(fd, at, mt, function (er2) {
+            fs22.close(fd, function (er22) {
               if (cb) cb(er2 || er22);
             });
           });
         });
       };
-      fs22.lutimesSync = function(path2, at, mt) {
+      fs22.lutimesSync = function (path2, at, mt) {
         var fd = fs22.openSync(path2, constants$2.O_SYMLINK);
         var ret;
         var threw = true;
@@ -3570,17 +3614,17 @@ function patch$3(fs2) {
         return ret;
       };
     } else if (fs22.futimes) {
-      fs22.lutimes = function(_a, _b, _c, cb) {
+      fs22.lutimes = function (_a, _b, _c, cb) {
         if (cb) process.nextTick(cb);
       };
-      fs22.lutimesSync = function() {
+      fs22.lutimesSync = function () {
       };
     }
   }
   function chmodFix(orig) {
     if (!orig) return orig;
-    return function(target, mode, cb) {
-      return orig.call(fs2, target, mode, function(er) {
+    return function (target, mode, cb) {
+      return orig.call(fs2, target, mode, function (er) {
         if (chownErOk(er)) er = null;
         if (cb) cb.apply(this, arguments);
       });
@@ -3588,7 +3632,7 @@ function patch$3(fs2) {
   }
   function chmodFixSync(orig) {
     if (!orig) return orig;
-    return function(target, mode) {
+    return function (target, mode) {
       try {
         return orig.call(fs2, target, mode);
       } catch (er) {
@@ -3598,8 +3642,8 @@ function patch$3(fs2) {
   }
   function chownFix(orig) {
     if (!orig) return orig;
-    return function(target, uid, gid, cb) {
-      return orig.call(fs2, target, uid, gid, function(er) {
+    return function (target, uid, gid, cb) {
+      return orig.call(fs2, target, uid, gid, function (er) {
         if (chownErOk(er)) er = null;
         if (cb) cb.apply(this, arguments);
       });
@@ -3607,7 +3651,7 @@ function patch$3(fs2) {
   }
   function chownFixSync(orig) {
     if (!orig) return orig;
-    return function(target, uid, gid) {
+    return function (target, uid, gid) {
       try {
         return orig.call(fs2, target, uid, gid);
       } catch (er) {
@@ -3617,7 +3661,7 @@ function patch$3(fs2) {
   }
   function statFix(orig) {
     if (!orig) return orig;
-    return function(target, options, cb) {
+    return function (target, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = null;
@@ -3634,7 +3678,7 @@ function patch$3(fs2) {
   }
   function statFixSync(orig) {
     if (!orig) return orig;
-    return function(target, options) {
+    return function (target, options) {
       var stats = options ? orig.call(fs2, target, options) : orig.call(fs2, target);
       if (stats) {
         if (stats.uid < 0) stats.uid += 4294967296;
@@ -3696,12 +3740,12 @@ function legacy$1(fs2) {
       this.pos = this.start;
     }
     if (this.fd !== null) {
-      process.nextTick(function() {
+      process.nextTick(function () {
         self2._read();
       });
       return;
     }
-    fs2.open(this.path, this.flags, this.mode, function(err, fd) {
+    fs2.open(this.path, this.flags, this.mode, function (err, fd) {
       if (err) {
         self2.emit("error", err);
         self2.readable = false;
@@ -3747,7 +3791,7 @@ function legacy$1(fs2) {
   }
 }
 var clone_1 = clone$1;
-var getPrototypeOf = Object.getPrototypeOf || function(obj) {
+var getPrototypeOf = Object.getPrototypeOf || function (obj) {
   return obj.__proto__;
 };
 function clone$1(obj) {
@@ -3757,7 +3801,7 @@ function clone$1(obj) {
     var copy2 = { __proto__: getPrototypeOf(obj) };
   else
     var copy2 = /* @__PURE__ */ Object.create(null);
-  Object.getOwnPropertyNames(obj).forEach(function(key) {
+  Object.getOwnPropertyNames(obj).forEach(function (key) {
     Object.defineProperty(copy2, key, Object.getOwnPropertyDescriptor(obj, key));
   });
   return copy2;
@@ -3780,7 +3824,7 @@ function noop() {
 }
 function publishQueue(context, queue2) {
   Object.defineProperty(context, gracefulQueue, {
-    get: function() {
+    get: function () {
       return queue2;
     }
   });
@@ -3789,7 +3833,7 @@ var debug$2 = noop;
 if (util$4.debuglog)
   debug$2 = util$4.debuglog("gfs4");
 else if (/\bgfs4\b/i.test(process.env.NODE_DEBUG || ""))
-  debug$2 = function() {
+  debug$2 = function () {
     var m = util$4.format.apply(util$4, arguments);
     m = "GFS4: " + m.split(/\n/).join("\nGFS4: ");
     console.error(m);
@@ -3797,9 +3841,9 @@ else if (/\bgfs4\b/i.test(process.env.NODE_DEBUG || ""))
 if (!fs$z[gracefulQueue]) {
   var queue$1 = commonjsGlobal[gracefulQueue] || [];
   publishQueue(fs$z, queue$1);
-  fs$z.close = function(fs$close) {
+  fs$z.close = function (fs$close) {
     function close(fd, cb) {
-      return fs$close.call(fs$z, fd, function(err) {
+      return fs$close.call(fs$z, fd, function (err) {
         if (!err) {
           resetQueue();
         }
@@ -3812,7 +3856,7 @@ if (!fs$z[gracefulQueue]) {
     });
     return close;
   }(fs$z.close);
-  fs$z.closeSync = function(fs$closeSync) {
+  fs$z.closeSync = function (fs$closeSync) {
     function closeSync(fd) {
       fs$closeSync.apply(fs$z, arguments);
       resetQueue();
@@ -3823,7 +3867,7 @@ if (!fs$z[gracefulQueue]) {
     return closeSync;
   }(fs$z.closeSync);
   if (/\bgfs4\b/i.test(process.env.NODE_DEBUG || "")) {
-    process.on("exit", function() {
+    process.on("exit", function () {
       debug$2(fs$z[gracefulQueue]);
       require$$5$1.equal(fs$z[gracefulQueue].length, 0);
     });
@@ -3849,7 +3893,7 @@ function patch$2(fs2) {
       cb = options, options = null;
     return go$readFile(path2, options, cb);
     function go$readFile(path22, options2, cb2, startTime) {
-      return fs$readFile(path22, options2, function(err) {
+      return fs$readFile(path22, options2, function (err) {
         if (err && (err.code === "EMFILE" || err.code === "ENFILE"))
           enqueue([go$readFile, [path22, options2, cb2], err, startTime || Date.now(), Date.now()]);
         else {
@@ -3866,7 +3910,7 @@ function patch$2(fs2) {
       cb = options, options = null;
     return go$writeFile(path2, data, options, cb);
     function go$writeFile(path22, data2, options2, cb2, startTime) {
-      return fs$writeFile(path22, data2, options2, function(err) {
+      return fs$writeFile(path22, data2, options2, function (err) {
         if (err && (err.code === "EMFILE" || err.code === "ENFILE"))
           enqueue([go$writeFile, [path22, data2, options2, cb2], err, startTime || Date.now(), Date.now()]);
         else {
@@ -3884,7 +3928,7 @@ function patch$2(fs2) {
       cb = options, options = null;
     return go$appendFile(path2, data, options, cb);
     function go$appendFile(path22, data2, options2, cb2, startTime) {
-      return fs$appendFile(path22, data2, options2, function(err) {
+      return fs$appendFile(path22, data2, options2, function (err) {
         if (err && (err.code === "EMFILE" || err.code === "ENFILE"))
           enqueue([go$appendFile, [path22, data2, options2, cb2], err, startTime || Date.now(), Date.now()]);
         else {
@@ -3904,7 +3948,7 @@ function patch$2(fs2) {
     }
     return go$copyFile(src2, dest, flags, cb);
     function go$copyFile(src22, dest2, flags2, cb2, startTime) {
-      return fs$copyFile(src22, dest2, flags2, function(err) {
+      return fs$copyFile(src22, dest2, flags2, function (err) {
         if (err && (err.code === "EMFILE" || err.code === "ENFILE"))
           enqueue([go$copyFile, [src22, dest2, flags2, cb2], err, startTime || Date.now(), Date.now()]);
         else {
@@ -3937,7 +3981,7 @@ function patch$2(fs2) {
     };
     return go$readdir(path2, options, cb);
     function fs$readdirCallback(path22, options2, cb2, startTime) {
-      return function(err, files) {
+      return function (err, files) {
         if (err && (err.code === "EMFILE" || err.code === "ENFILE"))
           enqueue([
             go$readdir,
@@ -3971,20 +4015,20 @@ function patch$2(fs2) {
     WriteStream.prototype.open = WriteStream$open;
   }
   Object.defineProperty(fs2, "ReadStream", {
-    get: function() {
+    get: function () {
       return ReadStream;
     },
-    set: function(val) {
+    set: function (val) {
       ReadStream = val;
     },
     enumerable: true,
     configurable: true
   });
   Object.defineProperty(fs2, "WriteStream", {
-    get: function() {
+    get: function () {
       return WriteStream;
     },
-    set: function(val) {
+    set: function (val) {
       WriteStream = val;
     },
     enumerable: true,
@@ -3992,10 +4036,10 @@ function patch$2(fs2) {
   });
   var FileReadStream = ReadStream;
   Object.defineProperty(fs2, "FileReadStream", {
-    get: function() {
+    get: function () {
       return FileReadStream;
     },
-    set: function(val) {
+    set: function (val) {
       FileReadStream = val;
     },
     enumerable: true,
@@ -4003,10 +4047,10 @@ function patch$2(fs2) {
   });
   var FileWriteStream = WriteStream;
   Object.defineProperty(fs2, "FileWriteStream", {
-    get: function() {
+    get: function () {
       return FileWriteStream;
     },
-    set: function(val) {
+    set: function (val) {
       FileWriteStream = val;
     },
     enumerable: true,
@@ -4020,7 +4064,7 @@ function patch$2(fs2) {
   }
   function ReadStream$open() {
     var that = this;
-    open(that.path, that.flags, that.mode, function(err, fd) {
+    open(that.path, that.flags, that.mode, function (err, fd) {
       if (err) {
         if (that.autoClose)
           that.destroy();
@@ -4040,7 +4084,7 @@ function patch$2(fs2) {
   }
   function WriteStream$open() {
     var that = this;
-    open(that.path, that.flags, that.mode, function(err, fd) {
+    open(that.path, that.flags, that.mode, function (err, fd) {
       if (err) {
         that.destroy();
         that.emit("error", err);
@@ -4063,7 +4107,7 @@ function patch$2(fs2) {
       cb = mode, mode = null;
     return go$open(path2, flags, mode, cb);
     function go$open(path22, flags2, mode2, cb2, startTime) {
-      return fs$open(path22, flags2, mode2, function(err, fd) {
+      return fs$open(path22, flags2, mode2, function (err, fd) {
         if (err && (err.code === "EMFILE" || err.code === "ENFILE"))
           enqueue([go$open, [path22, flags2, mode2, cb2], err, startTime || Date.now(), Date.now()]);
         else {
@@ -4125,7 +4169,7 @@ function retry() {
     retryTimer = setTimeout(retry, 0);
   }
 }
-(function(exports) {
+(function (exports) {
   const u2 = universalify$1.fromCallback;
   const fs2 = gracefulFs;
   const api = [
@@ -4170,7 +4214,7 @@ function retry() {
   api.forEach((method) => {
     exports[method] = u2(fs2[method]);
   });
-  exports.exists = function(filename, callback) {
+  exports.exists = function (filename, callback) {
     if (typeof callback === "function") {
       return fs2.exists(filename, callback);
     }
@@ -4178,7 +4222,7 @@ function retry() {
       return fs2.exists(filename, resolve2);
     });
   };
-  exports.read = function(fd, buffer, offset, length, position, callback) {
+  exports.read = function (fd, buffer, offset, length, position, callback) {
     if (typeof callback === "function") {
       return fs2.read(fd, buffer, offset, length, position, callback);
     }
@@ -4189,7 +4233,7 @@ function retry() {
       });
     });
   };
-  exports.write = function(fd, buffer, ...args) {
+  exports.write = function (fd, buffer, ...args) {
     if (typeof args[args.length - 1] === "function") {
       return fs2.write(fd, buffer, ...args);
     }
@@ -4201,7 +4245,7 @@ function retry() {
     });
   };
   if (typeof fs2.writev === "function") {
-    exports.writev = function(fd, buffers, ...args) {
+    exports.writev = function (fd, buffers, ...args) {
       if (typeof args[args.length - 1] === "function") {
         return fs2.writev(fd, buffers, ...args);
       }
@@ -4435,7 +4479,7 @@ function copy$5(src2, dest, opts, cb) {
   } else if (typeof opts === "function") {
     opts = { filter: opts };
   }
-  cb = cb || function() {
+  cb = cb || function () {
   };
   opts = opts || {};
   opts.clobber = "clobber" in opts ? !!opts.clobber : true;
@@ -5754,8 +5798,8 @@ var YAML_NODE_KINDS = [
 function compileStyleAliases(map2) {
   var result = {};
   if (map2 !== null) {
-    Object.keys(map2).forEach(function(style) {
-      map2[style].forEach(function(alias) {
+    Object.keys(map2).forEach(function (style) {
+      map2[style].forEach(function (alias) {
         result[String(alias)] = style;
       });
     });
@@ -5764,7 +5808,7 @@ function compileStyleAliases(map2) {
 }
 function Type$f(tag, options) {
   options = options || {};
-  Object.keys(options).forEach(function(name) {
+  Object.keys(options).forEach(function (name) {
     if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
       throw new YAMLException$3('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.');
     }
@@ -5772,10 +5816,10 @@ function Type$f(tag, options) {
   this.options = options;
   this.tag = tag;
   this.kind = options["kind"] || null;
-  this.resolve = options["resolve"] || function() {
+  this.resolve = options["resolve"] || function () {
     return true;
   };
-  this.construct = options["construct"] || function(data) {
+  this.construct = options["construct"] || function (data) {
     return data;
   };
   this.instanceOf = options["instanceOf"] || null;
@@ -5794,9 +5838,9 @@ var YAMLException$2 = exception;
 var Type$e = type$a;
 function compileList(schema2, name) {
   var result = [];
-  schema2[name].forEach(function(currentType) {
+  schema2[name].forEach(function (currentType) {
     var newIndex = result.length;
-    result.forEach(function(previousType, previousIndex) {
+    result.forEach(function (previousType, previousIndex) {
       if (previousType.tag === currentType.tag && previousType.kind === currentType.kind && previousType.multi === currentType.multi) {
         newIndex = previousIndex;
       }
@@ -5847,7 +5891,7 @@ Schema$1.prototype.extend = function extend2(definition) {
   } else {
     throw new YAMLException$2("Schema.extend argument should be a Type, [ Type ], or a schema definition ({ implicit: [...], explicit: [...] })");
   }
-  implicit.forEach(function(type2) {
+  implicit.forEach(function (type2) {
     if (!(type2 instanceof Type$e)) {
       throw new YAMLException$2("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -5858,7 +5902,7 @@ Schema$1.prototype.extend = function extend2(definition) {
       throw new YAMLException$2("There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.");
     }
   });
-  explicit.forEach(function(type2) {
+  explicit.forEach(function (type2) {
     if (!(type2 instanceof Type$e)) {
       throw new YAMLException$2("Specified list of YAML types (or a single Type object) contains a non-Type object.");
     }
@@ -5875,21 +5919,21 @@ var schema = Schema$1;
 var Type$d = type$a;
 var str = new Type$d("tag:yaml.org,2002:str", {
   kind: "scalar",
-  construct: function(data) {
+  construct: function (data) {
     return data !== null ? data : "";
   }
 });
 var Type$c = type$a;
 var seq = new Type$c("tag:yaml.org,2002:seq", {
   kind: "sequence",
-  construct: function(data) {
+  construct: function (data) {
     return data !== null ? data : [];
   }
 });
 var Type$b = type$a;
 var map = new Type$b("tag:yaml.org,2002:map", {
   kind: "mapping",
-  construct: function(data) {
+  construct: function (data) {
     return data !== null ? data : {};
   }
 });
@@ -5919,19 +5963,19 @@ var _null = new Type$a("tag:yaml.org,2002:null", {
   construct: constructYamlNull,
   predicate: isNull,
   represent: {
-    canonical: function() {
+    canonical: function () {
       return "~";
     },
-    lowercase: function() {
+    lowercase: function () {
       return "null";
     },
-    uppercase: function() {
+    uppercase: function () {
       return "NULL";
     },
-    camelcase: function() {
+    camelcase: function () {
       return "Null";
     },
-    empty: function() {
+    empty: function () {
       return "";
     }
   },
@@ -5955,13 +5999,13 @@ var bool = new Type$9("tag:yaml.org,2002:bool", {
   construct: constructYamlBoolean,
   predicate: isBoolean,
   represent: {
-    lowercase: function(object) {
+    lowercase: function (object) {
       return object ? "true" : "false";
     },
-    uppercase: function(object) {
+    uppercase: function (object) {
       return object ? "TRUE" : "FALSE";
     },
-    camelcase: function(object) {
+    camelcase: function (object) {
       return object ? "True" : "False";
     }
   },
@@ -6060,17 +6104,17 @@ var int = new Type$8("tag:yaml.org,2002:int", {
   construct: constructYamlInteger,
   predicate: isInteger,
   represent: {
-    binary: function(obj) {
+    binary: function (obj) {
       return obj >= 0 ? "0b" + obj.toString(2) : "-0b" + obj.toString(2).slice(1);
     },
-    octal: function(obj) {
+    octal: function (obj) {
       return obj >= 0 ? "0o" + obj.toString(8) : "-0o" + obj.toString(8).slice(1);
     },
-    decimal: function(obj) {
+    decimal: function (obj) {
       return obj.toString(10);
     },
     /* eslint-disable max-len */
-    hexadecimal: function(obj) {
+    hexadecimal: function (obj) {
       return obj >= 0 ? "0x" + obj.toString(16).toUpperCase() : "-0x" + obj.toString(16).toUpperCase().slice(1);
     }
   },
@@ -6091,8 +6135,8 @@ var YAML_FLOAT_PATTERN = new RegExp(
 function resolveYamlFloat(data) {
   if (data === null) return false;
   if (!YAML_FLOAT_PATTERN.test(data) || // Quick hack to not allow integers end with `_`
-  // Probably should update regexp & check speed
-  data[data.length - 1] === "_") {
+    // Probably should update regexp & check speed
+    data[data.length - 1] === "_") {
     return false;
   }
   return true;
@@ -7771,7 +7815,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
         hasLineBreak = true;
         if (shouldTrackWidth) {
           hasFoldableLine = hasFoldableLine || // Foldable line = too long, and not more-indented.
-          i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
+            i - previousLineBreak - 1 > lineWidth && string[previousLineBreak + 1] !== " ";
           previousLineBreak = i;
         }
       } else if (!isPrintable(char)) {
@@ -7797,7 +7841,7 @@ function chooseScalarStyle(string, singleLineOnly, indentPerLevel, lineWidth, te
   return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE;
 }
 function writeScalar(state, string, level, iskey, inblock) {
-  state.dump = function() {
+  state.dump = function () {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''";
     }
@@ -7849,7 +7893,7 @@ function dropEndingNewline(string) {
 }
 function foldString(string, width) {
   var lineRe = /(\n+)([^\n]*)/g;
-  var result = function() {
+  var result = function () {
     var nextLF = string.indexOf("\n");
     nextLF = nextLF !== -1 ? nextLF : string.length;
     lineRe.lastIndex = nextLF;
@@ -8172,7 +8216,7 @@ dumper$1.dump = dump;
 var loader = loader$1;
 var dumper = dumper$1;
 function renamed(from, to) {
-  return function() {
+  return function () {
     throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
   };
 }
@@ -8233,7 +8277,7 @@ var re$2 = { exports: {} };
 const SEMVER_SPEC_VERSION = "2.0.0";
 const MAX_LENGTH$1 = 256;
 const MAX_SAFE_INTEGER$1 = Number.MAX_SAFE_INTEGER || /* istanbul ignore next */
-9007199254740991;
+  9007199254740991;
 const MAX_SAFE_COMPONENT_LENGTH = 16;
 const MAX_SAFE_BUILD_LENGTH = MAX_LENGTH$1 - 6;
 const RELEASE_TYPES = [
@@ -8258,7 +8302,7 @@ var constants$1 = {
 const debug$1 = typeof process === "object" && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(process.env.NODE_DEBUG) ? (...args) => console.error("SEMVER", ...args) : () => {
 };
 var debug_1 = debug$1;
-(function(module, exports) {
+(function (module, exports) {
   const {
     MAX_SAFE_COMPONENT_LENGTH: MAX_SAFE_COMPONENT_LENGTH2,
     MAX_SAFE_BUILD_LENGTH: MAX_SAFE_BUILD_LENGTH2,
@@ -9839,7 +9883,7 @@ const semver$2 = /* @__PURE__ */ getDefaultExportFromCjs(semver$1);
 var DownloadedUpdateHelper$1 = {};
 var lodash_isequal = { exports: {} };
 lodash_isequal.exports;
-(function(module, exports) {
+(function (module, exports) {
   var LARGE_ARRAY_SIZE = 200;
   var HASH_UNDEFINED = "__lodash_hash_undefined__";
   var COMPARE_PARTIAL_FLAG = 1, COMPARE_UNORDERED_FLAG = 2;
@@ -9859,7 +9903,7 @@ lodash_isequal.exports;
   var freeModule = freeExports && true && module && !module.nodeType && module;
   var moduleExports = freeModule && freeModule.exports === freeExports;
   var freeProcess = moduleExports && freeGlobal2.process;
-  var nodeUtil = function() {
+  var nodeUtil = function () {
     try {
       return freeProcess && freeProcess.binding && freeProcess.binding("util");
     } catch (e) {
@@ -9900,7 +9944,7 @@ lodash_isequal.exports;
     return result;
   }
   function baseUnary(func) {
-    return function(value) {
+    return function (value) {
       return func(value);
     };
   }
@@ -9912,19 +9956,19 @@ lodash_isequal.exports;
   }
   function mapToArray(map2) {
     var index = -1, result = Array(map2.size);
-    map2.forEach(function(value, key) {
+    map2.forEach(function (value, key) {
       result[++index] = [key, value];
     });
     return result;
   }
   function overArg(func, transform) {
-    return function(arg) {
+    return function (arg) {
       return func(transform(arg));
     };
   }
   function setToArray(set3) {
     var index = -1, result = Array(set3.size);
-    set3.forEach(function(value) {
+    set3.forEach(function (value) {
       result[++index] = value;
     });
     return result;
@@ -9933,7 +9977,7 @@ lodash_isequal.exports;
   var coreJsData = root2["__core-js_shared__"];
   var funcToString = funcProto.toString;
   var hasOwnProperty = objectProto2.hasOwnProperty;
-  var maskSrcKey = function() {
+  var maskSrcKey = function () {
     var uid = /[^.]+$/.exec(coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO || "");
     return uid ? "Symbol(src)_1." + uid : "";
   }();
@@ -10131,10 +10175,10 @@ lodash_isequal.exports;
     var isArr = isArray(value), isArg = !isArr && isArguments(value), isBuff = !isArr && !isArg && isBuffer(value), isType2 = !isArr && !isArg && !isBuff && isTypedArray(value), skipIndexes = isArr || isArg || isBuff || isType2, result = skipIndexes ? baseTimes(value.length, String) : [], length = result.length;
     for (var key in value) {
       if (hasOwnProperty.call(value, key) && !(skipIndexes && // Safari 9 has enumerable `arguments.length` in strict mode.
-      (key == "length" || // Node.js 0.10 has enumerable non-index properties on buffers.
-      isBuff && (key == "offset" || key == "parent") || // PhantomJS 2 has enumerable non-index properties on typed arrays.
-      isType2 && (key == "buffer" || key == "byteLength" || key == "byteOffset") || // Skip index properties.
-      isIndex(key, length)))) {
+        (key == "length" || // Node.js 0.10 has enumerable non-index properties on buffers.
+          isBuff && (key == "offset" || key == "parent") || // PhantomJS 2 has enumerable non-index properties on typed arrays.
+          isType2 && (key == "buffer" || key == "byteLength" || key == "byteOffset") || // Skip index properties.
+          isIndex(key, length)))) {
         result.push(key);
       }
     }
@@ -10248,7 +10292,7 @@ lodash_isequal.exports;
         break;
       }
       if (seen) {
-        if (!arraySome(other, function(othValue2, othIndex) {
+        if (!arraySome(other, function (othValue2, othIndex) {
           if (!cacheHas(seen, othIndex) && (arrValue === othValue2 || equalFunc(arrValue, othValue2, bitmask, customizer, stack))) {
             return seen.push(othIndex);
           }
@@ -10381,18 +10425,18 @@ lodash_isequal.exports;
     }
     return result;
   }
-  var getSymbols = !nativeGetSymbols ? stubArray : function(object) {
+  var getSymbols = !nativeGetSymbols ? stubArray : function (object) {
     if (object == null) {
       return [];
     }
     object = Object(object);
-    return arrayFilter(nativeGetSymbols(object), function(symbol) {
+    return arrayFilter(nativeGetSymbols(object), function (symbol) {
       return propertyIsEnumerable.call(object, symbol);
     });
   };
   var getTag = baseGetTag;
   if (DataView && getTag(new DataView(new ArrayBuffer(1))) != dataViewTag || Map2 && getTag(new Map2()) != mapTag || Promise2 && getTag(Promise2.resolve()) != promiseTag || Set2 && getTag(new Set2()) != setTag || WeakMap2 && getTag(new WeakMap2()) != weakMapTag) {
-    getTag = function(value) {
+    getTag = function (value) {
       var result = baseGetTag(value), Ctor = result == objectTag ? value.constructor : void 0, ctorString = Ctor ? toSource(Ctor) : "";
       if (ctorString) {
         switch (ctorString) {
@@ -10445,9 +10489,9 @@ lodash_isequal.exports;
   function eq2(value, other) {
     return value === other || value !== value && other !== other;
   }
-  var isArguments = baseIsArguments(/* @__PURE__ */ function() {
+  var isArguments = baseIsArguments(/* @__PURE__ */ function () {
     return arguments;
-  }()) ? baseIsArguments : function(value) {
+  }()) ? baseIsArguments : function (value) {
     return isObjectLike2(value) && hasOwnProperty.call(value, "callee") && !propertyIsEnumerable.call(value, "callee");
   };
   var isArray = Array.isArray;
@@ -10703,7 +10747,7 @@ class ElectronAppAdapter {
 }
 ElectronAppAdapter$1.ElectronAppAdapter = ElectronAppAdapter;
 var electronHttpExecutor = {};
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.ElectronHttpExecutor = exports.NET_SESSION_NAME = void 0;
   exports.getNetSession = getNetSession;
@@ -11426,7 +11470,7 @@ Object.defineProperty(downloadPlanBuilder, "__esModule", { value: true });
 downloadPlanBuilder.OperationKind = void 0;
 downloadPlanBuilder.computeOperations = computeOperations;
 var OperationKind$1;
-(function(OperationKind2) {
+(function (OperationKind2) {
   OperationKind2[OperationKind2["COPY"] = 0] = "COPY";
   OperationKind2[OperationKind2["DOWNLOAD"] = 1] = "DOWNLOAD";
 })(OperationKind$1 || (downloadPlanBuilder.OperationKind = OperationKind$1 = {}));
@@ -11533,7 +11577,7 @@ const stream_1$2 = require$$0$2;
 const downloadPlanBuilder_1$2 = downloadPlanBuilder;
 const DOUBLE_CRLF = Buffer.from("\r\n\r\n");
 var ReadState;
-(function(ReadState2) {
+(function (ReadState2) {
   ReadState2[ReadState2["INIT"] = 0] = "INIT";
   ReadState2[ReadState2["HEADER"] = 1] = "HEADER";
   ReadState2[ReadState2["BODY"] = 2] = "BODY";
@@ -11827,7 +11871,7 @@ Object.defineProperty(ProgressDifferentialDownloadCallbackTransform$1, "__esModu
 ProgressDifferentialDownloadCallbackTransform$1.ProgressDifferentialDownloadCallbackTransform = void 0;
 const stream_1$1 = require$$0$2;
 var OperationKind;
-(function(OperationKind2) {
+(function (OperationKind2) {
   OperationKind2[OperationKind2["COPY"] = 0] = "COPY";
   OperationKind2[OperationKind2["DOWNLOAD"] = 1] = "DOWNLOAD";
 })(OperationKind || (OperationKind = {}));
@@ -13588,50 +13632,70 @@ var hasRequiredMain;
 function requireMain() {
   if (hasRequiredMain) return main$1;
   hasRequiredMain = 1;
-  (function(exports) {
+  (function (exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UpdaterSignal = exports.UPDATE_DOWNLOADED = exports.DOWNLOAD_PROGRESS = exports.NsisUpdater = exports.MacUpdater = exports.RpmUpdater = exports.DebUpdater = exports.AppImageUpdater = exports.Provider = exports.CancellationToken = exports.NoOpLogger = exports.AppUpdater = exports.BaseUpdater = void 0;
     const builder_util_runtime_12 = out;
-    Object.defineProperty(exports, "CancellationToken", { enumerable: true, get: function() {
-      return builder_util_runtime_12.CancellationToken;
-    } });
+    Object.defineProperty(exports, "CancellationToken", {
+      enumerable: true, get: function () {
+        return builder_util_runtime_12.CancellationToken;
+      }
+    });
     const fs_extra_12 = lib$2;
     const path2 = require$$1$5;
     var BaseUpdater_1 = requireBaseUpdater();
-    Object.defineProperty(exports, "BaseUpdater", { enumerable: true, get: function() {
-      return BaseUpdater_1.BaseUpdater;
-    } });
+    Object.defineProperty(exports, "BaseUpdater", {
+      enumerable: true, get: function () {
+        return BaseUpdater_1.BaseUpdater;
+      }
+    });
     var AppUpdater_1 = requireAppUpdater();
-    Object.defineProperty(exports, "AppUpdater", { enumerable: true, get: function() {
-      return AppUpdater_1.AppUpdater;
-    } });
-    Object.defineProperty(exports, "NoOpLogger", { enumerable: true, get: function() {
-      return AppUpdater_1.NoOpLogger;
-    } });
+    Object.defineProperty(exports, "AppUpdater", {
+      enumerable: true, get: function () {
+        return AppUpdater_1.AppUpdater;
+      }
+    });
+    Object.defineProperty(exports, "NoOpLogger", {
+      enumerable: true, get: function () {
+        return AppUpdater_1.NoOpLogger;
+      }
+    });
     var Provider_12 = Provider$1;
-    Object.defineProperty(exports, "Provider", { enumerable: true, get: function() {
-      return Provider_12.Provider;
-    } });
+    Object.defineProperty(exports, "Provider", {
+      enumerable: true, get: function () {
+        return Provider_12.Provider;
+      }
+    });
     var AppImageUpdater_1 = requireAppImageUpdater();
-    Object.defineProperty(exports, "AppImageUpdater", { enumerable: true, get: function() {
-      return AppImageUpdater_1.AppImageUpdater;
-    } });
+    Object.defineProperty(exports, "AppImageUpdater", {
+      enumerable: true, get: function () {
+        return AppImageUpdater_1.AppImageUpdater;
+      }
+    });
     var DebUpdater_1 = requireDebUpdater();
-    Object.defineProperty(exports, "DebUpdater", { enumerable: true, get: function() {
-      return DebUpdater_1.DebUpdater;
-    } });
+    Object.defineProperty(exports, "DebUpdater", {
+      enumerable: true, get: function () {
+        return DebUpdater_1.DebUpdater;
+      }
+    });
     var RpmUpdater_1 = requireRpmUpdater();
-    Object.defineProperty(exports, "RpmUpdater", { enumerable: true, get: function() {
-      return RpmUpdater_1.RpmUpdater;
-    } });
+    Object.defineProperty(exports, "RpmUpdater", {
+      enumerable: true, get: function () {
+        return RpmUpdater_1.RpmUpdater;
+      }
+    });
     var MacUpdater_1 = requireMacUpdater();
-    Object.defineProperty(exports, "MacUpdater", { enumerable: true, get: function() {
-      return MacUpdater_1.MacUpdater;
-    } });
+    Object.defineProperty(exports, "MacUpdater", {
+      enumerable: true, get: function () {
+        return MacUpdater_1.MacUpdater;
+      }
+    });
     var NsisUpdater_1 = requireNsisUpdater();
-    Object.defineProperty(exports, "NsisUpdater", { enumerable: true, get: function() {
-      return NsisUpdater_1.NsisUpdater;
-    } });
+    Object.defineProperty(exports, "NsisUpdater", {
+      enumerable: true, get: function () {
+        return NsisUpdater_1.NsisUpdater;
+      }
+    });
     let _autoUpdater;
     function doLoadAutoUpdater() {
       if (process.platform === "win32") {
@@ -13703,7 +13767,7 @@ function requireMain() {
 }
 var mainExports = requireMain();
 var fs$h = {};
-(function(exports) {
+(function (exports) {
   const u2 = universalify$1.fromCallback;
   const fs2 = gracefulFs;
   const api = [
@@ -13752,7 +13816,7 @@ var fs$h = {};
   api.forEach((method) => {
     exports[method] = u2(fs2[method]);
   });
-  exports.exists = function(filename, callback) {
+  exports.exists = function (filename, callback) {
     if (typeof callback === "function") {
       return fs2.exists(filename, callback);
     }
@@ -13760,7 +13824,7 @@ var fs$h = {};
       return fs2.exists(filename, resolve2);
     });
   };
-  exports.read = function(fd, buffer, offset, length, position, callback) {
+  exports.read = function (fd, buffer, offset, length, position, callback) {
     if (typeof callback === "function") {
       return fs2.read(fd, buffer, offset, length, position, callback);
     }
@@ -13771,7 +13835,7 @@ var fs$h = {};
       });
     });
   };
-  exports.write = function(fd, buffer, ...args) {
+  exports.write = function (fd, buffer, ...args) {
     if (typeof args[args.length - 1] === "function") {
       return fs2.write(fd, buffer, ...args);
     }
@@ -13782,7 +13846,7 @@ var fs$h = {};
       });
     });
   };
-  exports.readv = function(fd, buffers, ...args) {
+  exports.readv = function (fd, buffers, ...args) {
     if (typeof args[args.length - 1] === "function") {
       return fs2.readv(fd, buffers, ...args);
     }
@@ -13793,7 +13857,7 @@ var fs$h = {};
       });
     });
   };
-  exports.writev = function(fd, buffers, ...args) {
+  exports.writev = function (fd, buffers, ...args) {
     if (typeof args[args.length - 1] === "function") {
       return fs2.writev(fd, buffers, ...args);
     }
@@ -15402,7 +15466,7 @@ var boolSchema = {};
 var errors = {};
 var codegen = {};
 var code$1 = {};
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.regexpCode = exports.getEsmExportName = exports.getProperty = exports.safeStringify = exports.stringify = exports.strConcat = exports.addCodeArg = exports.str = exports._ = exports.nil = exports._Code = exports.Name = exports.IDENTIFIER = exports._CodeOrName = void 0;
   class _CodeOrName {
@@ -15552,7 +15616,7 @@ var code$1 = {};
   exports.regexpCode = regexpCode;
 })(code$1);
 var scope = {};
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.ValueScope = exports.ValueScopeName = exports.Scope = exports.varKinds = exports.UsedValueState = void 0;
   const code_12 = code$1;
@@ -15563,7 +15627,7 @@ var scope = {};
     }
   }
   var UsedValueState;
-  (function(UsedValueState2) {
+  (function (UsedValueState2) {
     UsedValueState2[UsedValueState2["Started"] = 0] = "Started";
     UsedValueState2[UsedValueState2["Completed"] = 1] = "Completed";
   })(UsedValueState || (exports.UsedValueState = UsedValueState = {}));
@@ -15692,49 +15756,73 @@ var scope = {};
   }
   exports.ValueScope = ValueScope;
 })(scope);
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.or = exports.and = exports.not = exports.CodeGen = exports.operators = exports.varKinds = exports.ValueScopeName = exports.ValueScope = exports.Scope = exports.Name = exports.regexpCode = exports.stringify = exports.getProperty = exports.nil = exports.strConcat = exports.str = exports._ = void 0;
   const code_12 = code$1;
   const scope_1 = scope;
   var code_2 = code$1;
-  Object.defineProperty(exports, "_", { enumerable: true, get: function() {
-    return code_2._;
-  } });
-  Object.defineProperty(exports, "str", { enumerable: true, get: function() {
-    return code_2.str;
-  } });
-  Object.defineProperty(exports, "strConcat", { enumerable: true, get: function() {
-    return code_2.strConcat;
-  } });
-  Object.defineProperty(exports, "nil", { enumerable: true, get: function() {
-    return code_2.nil;
-  } });
-  Object.defineProperty(exports, "getProperty", { enumerable: true, get: function() {
-    return code_2.getProperty;
-  } });
-  Object.defineProperty(exports, "stringify", { enumerable: true, get: function() {
-    return code_2.stringify;
-  } });
-  Object.defineProperty(exports, "regexpCode", { enumerable: true, get: function() {
-    return code_2.regexpCode;
-  } });
-  Object.defineProperty(exports, "Name", { enumerable: true, get: function() {
-    return code_2.Name;
-  } });
+  Object.defineProperty(exports, "_", {
+    enumerable: true, get: function () {
+      return code_2._;
+    }
+  });
+  Object.defineProperty(exports, "str", {
+    enumerable: true, get: function () {
+      return code_2.str;
+    }
+  });
+  Object.defineProperty(exports, "strConcat", {
+    enumerable: true, get: function () {
+      return code_2.strConcat;
+    }
+  });
+  Object.defineProperty(exports, "nil", {
+    enumerable: true, get: function () {
+      return code_2.nil;
+    }
+  });
+  Object.defineProperty(exports, "getProperty", {
+    enumerable: true, get: function () {
+      return code_2.getProperty;
+    }
+  });
+  Object.defineProperty(exports, "stringify", {
+    enumerable: true, get: function () {
+      return code_2.stringify;
+    }
+  });
+  Object.defineProperty(exports, "regexpCode", {
+    enumerable: true, get: function () {
+      return code_2.regexpCode;
+    }
+  });
+  Object.defineProperty(exports, "Name", {
+    enumerable: true, get: function () {
+      return code_2.Name;
+    }
+  });
   var scope_2 = scope;
-  Object.defineProperty(exports, "Scope", { enumerable: true, get: function() {
-    return scope_2.Scope;
-  } });
-  Object.defineProperty(exports, "ValueScope", { enumerable: true, get: function() {
-    return scope_2.ValueScope;
-  } });
-  Object.defineProperty(exports, "ValueScopeName", { enumerable: true, get: function() {
-    return scope_2.ValueScopeName;
-  } });
-  Object.defineProperty(exports, "varKinds", { enumerable: true, get: function() {
-    return scope_2.varKinds;
-  } });
+  Object.defineProperty(exports, "Scope", {
+    enumerable: true, get: function () {
+      return scope_2.Scope;
+    }
+  });
+  Object.defineProperty(exports, "ValueScope", {
+    enumerable: true, get: function () {
+      return scope_2.ValueScope;
+    }
+  });
+  Object.defineProperty(exports, "ValueScopeName", {
+    enumerable: true, get: function () {
+      return scope_2.ValueScopeName;
+    }
+  });
+  Object.defineProperty(exports, "varKinds", {
+    enumerable: true, get: function () {
+      return scope_2.varKinds;
+    }
+  });
   exports.operators = {
     GT: new code_12._Code(">"),
     GTE: new code_12._Code(">="),
@@ -16547,7 +16635,7 @@ function useFunc(gen, f) {
 }
 util$1.useFunc = useFunc;
 var Type;
-(function(Type2) {
+(function (Type2) {
   Type2[Type2["Num"] = 0] = "Num";
   Type2[Type2["Str"] = 1] = "Str";
 })(Type || (util$1.Type = Type = {}));
@@ -16601,7 +16689,7 @@ const names = {
   jsonPart: new codegen_1$y.Name("jsonPart")
 };
 names$1.default = names;
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.extendErrors = exports.resetErrorsCount = exports.reportExtraError = exports.reportError = exports.keyword$DataError = exports.keywordError = void 0;
   const codegen_12 = codegen;
@@ -16813,7 +16901,7 @@ const errors_1$2 = errors;
 const codegen_1$w = codegen;
 const util_1$u = util$1;
 var DataType;
-(function(DataType2) {
+(function (DataType2) {
   DataType2[DataType2["Correct"] = 0] = "Correct";
   DataType2[DataType2["Wrong"] = 1] = "Wrong";
 })(DataType || (dataType.DataType = DataType = {}));
@@ -17338,7 +17426,7 @@ var fastDeepEqual = function equal(a, b) {
     if (Array.isArray(a)) {
       length = a.length;
       if (length != b.length) return false;
-      for (i = length; i-- !== 0; )
+      for (i = length; i-- !== 0;)
         if (!equal(a[i], b[i])) return false;
       return true;
     }
@@ -17348,9 +17436,9 @@ var fastDeepEqual = function equal(a, b) {
     keys2 = Object.keys(a);
     length = keys2.length;
     if (length !== Object.keys(b).length) return false;
-    for (i = length; i-- !== 0; )
+    for (i = length; i-- !== 0;)
       if (!Object.prototype.hasOwnProperty.call(b, keys2[i])) return false;
-    for (i = length; i-- !== 0; ) {
+    for (i = length; i-- !== 0;) {
       var key = keys2[i];
       if (!equal(a[key], b[key])) return false;
     }
@@ -17359,15 +17447,15 @@ var fastDeepEqual = function equal(a, b) {
   return a !== a && b !== b;
 };
 var jsonSchemaTraverse = { exports: {} };
-var traverse$1 = jsonSchemaTraverse.exports = function(schema2, opts, cb) {
+var traverse$1 = jsonSchemaTraverse.exports = function (schema2, opts, cb) {
   if (typeof opts == "function") {
     cb = opts;
     opts = {};
   }
   cb = opts.cb || cb;
-  var pre = typeof cb == "function" ? cb : cb.pre || function() {
+  var pre = typeof cb == "function" ? cb : cb.pre || function () {
   };
-  var post = cb.post || function() {
+  var post = cb.post || function () {
   };
   _traverse(opts, pre, post, schema2, "", schema2);
 };
@@ -19003,32 +19091,46 @@ Object.defineProperty(uri$1, "__esModule", { value: true });
 const uri = fastUriExports;
 uri.code = 'require("ajv/dist/runtime/uri").default';
 uri$1.default = uri;
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = void 0;
   var validate_12 = validate;
-  Object.defineProperty(exports, "KeywordCxt", { enumerable: true, get: function() {
-    return validate_12.KeywordCxt;
-  } });
+  Object.defineProperty(exports, "KeywordCxt", {
+    enumerable: true, get: function () {
+      return validate_12.KeywordCxt;
+    }
+  });
   var codegen_12 = codegen;
-  Object.defineProperty(exports, "_", { enumerable: true, get: function() {
-    return codegen_12._;
-  } });
-  Object.defineProperty(exports, "str", { enumerable: true, get: function() {
-    return codegen_12.str;
-  } });
-  Object.defineProperty(exports, "stringify", { enumerable: true, get: function() {
-    return codegen_12.stringify;
-  } });
-  Object.defineProperty(exports, "nil", { enumerable: true, get: function() {
-    return codegen_12.nil;
-  } });
-  Object.defineProperty(exports, "Name", { enumerable: true, get: function() {
-    return codegen_12.Name;
-  } });
-  Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function() {
-    return codegen_12.CodeGen;
-  } });
+  Object.defineProperty(exports, "_", {
+    enumerable: true, get: function () {
+      return codegen_12._;
+    }
+  });
+  Object.defineProperty(exports, "str", {
+    enumerable: true, get: function () {
+      return codegen_12.str;
+    }
+  });
+  Object.defineProperty(exports, "stringify", {
+    enumerable: true, get: function () {
+      return codegen_12.stringify;
+    }
+  });
+  Object.defineProperty(exports, "nil", {
+    enumerable: true, get: function () {
+      return codegen_12.nil;
+    }
+  });
+  Object.defineProperty(exports, "Name", {
+    enumerable: true, get: function () {
+      return codegen_12.Name;
+    }
+  });
+  Object.defineProperty(exports, "CodeGen", {
+    enumerable: true, get: function () {
+      return codegen_12.CodeGen;
+    }
+  });
   const validation_error_12 = validation_error;
   const ref_error_12 = ref_error;
   const rules_12 = rules;
@@ -19528,10 +19630,12 @@ uri$1.default = uri;
       delete metaOpts[opt];
     return metaOpts;
   }
-  const noLogs = { log() {
-  }, warn() {
-  }, error() {
-  } };
+  const noLogs = {
+    log() {
+    }, warn() {
+    }, error() {
+    }
+  };
   function getLogger(logger) {
     if (logger === false)
       return noLogs;
@@ -20380,7 +20484,7 @@ const def$l = {
 };
 contains.default = def$l;
 var dependencies = {};
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.validateSchemaDeps = exports.validatePropertyDeps = exports.error = void 0;
   const codegen_12 = codegen;
@@ -21330,7 +21434,7 @@ var types = {};
 Object.defineProperty(types, "__esModule", { value: true });
 types.DiscrError = void 0;
 var DiscrError;
-(function(DiscrError2) {
+(function (DiscrError2) {
   DiscrError2["Tag"] = "tag";
   DiscrError2["Mapping"] = "mapping";
 })(DiscrError || (types.DiscrError = DiscrError = {}));
@@ -21975,7 +22079,7 @@ function addMetaSchema2020($data) {
   }
 }
 jsonSchema202012.default = addMetaSchema2020;
-(function(module, exports) {
+(function (module, exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.MissingRefError = exports.ValidationError = exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = exports.Ajv2020 = void 0;
   const core_12 = core$3;
@@ -22016,41 +22120,59 @@ jsonSchema202012.default = addMetaSchema2020;
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.default = Ajv2020;
   var validate_12 = validate;
-  Object.defineProperty(exports, "KeywordCxt", { enumerable: true, get: function() {
-    return validate_12.KeywordCxt;
-  } });
+  Object.defineProperty(exports, "KeywordCxt", {
+    enumerable: true, get: function () {
+      return validate_12.KeywordCxt;
+    }
+  });
   var codegen_12 = codegen;
-  Object.defineProperty(exports, "_", { enumerable: true, get: function() {
-    return codegen_12._;
-  } });
-  Object.defineProperty(exports, "str", { enumerable: true, get: function() {
-    return codegen_12.str;
-  } });
-  Object.defineProperty(exports, "stringify", { enumerable: true, get: function() {
-    return codegen_12.stringify;
-  } });
-  Object.defineProperty(exports, "nil", { enumerable: true, get: function() {
-    return codegen_12.nil;
-  } });
-  Object.defineProperty(exports, "Name", { enumerable: true, get: function() {
-    return codegen_12.Name;
-  } });
-  Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function() {
-    return codegen_12.CodeGen;
-  } });
+  Object.defineProperty(exports, "_", {
+    enumerable: true, get: function () {
+      return codegen_12._;
+    }
+  });
+  Object.defineProperty(exports, "str", {
+    enumerable: true, get: function () {
+      return codegen_12.str;
+    }
+  });
+  Object.defineProperty(exports, "stringify", {
+    enumerable: true, get: function () {
+      return codegen_12.stringify;
+    }
+  });
+  Object.defineProperty(exports, "nil", {
+    enumerable: true, get: function () {
+      return codegen_12.nil;
+    }
+  });
+  Object.defineProperty(exports, "Name", {
+    enumerable: true, get: function () {
+      return codegen_12.Name;
+    }
+  });
+  Object.defineProperty(exports, "CodeGen", {
+    enumerable: true, get: function () {
+      return codegen_12.CodeGen;
+    }
+  });
   var validation_error_12 = validation_error;
-  Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function() {
-    return validation_error_12.default;
-  } });
+  Object.defineProperty(exports, "ValidationError", {
+    enumerable: true, get: function () {
+      return validation_error_12.default;
+    }
+  });
   var ref_error_12 = ref_error;
-  Object.defineProperty(exports, "MissingRefError", { enumerable: true, get: function() {
-    return ref_error_12.default;
-  } });
+  Object.defineProperty(exports, "MissingRefError", {
+    enumerable: true, get: function () {
+      return ref_error_12.default;
+    }
+  });
 })(_2020, _2020.exports);
 var _2020Exports = _2020.exports;
 var dist = { exports: {} };
 var formats = {};
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.formatNames = exports.fastFormats = exports.fullFormats = void 0;
   function fmtDef(validate2, compare2) {
@@ -22513,7 +22635,7 @@ const require$$3 = {
   properties,
   "default": true
 };
-(function(module, exports) {
+(function (module, exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.MissingRefError = exports.ValidationError = exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = exports.Ajv = void 0;
   const core_12 = core$3;
@@ -22547,39 +22669,57 @@ const require$$3 = {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.default = Ajv;
   var validate_12 = validate;
-  Object.defineProperty(exports, "KeywordCxt", { enumerable: true, get: function() {
-    return validate_12.KeywordCxt;
-  } });
+  Object.defineProperty(exports, "KeywordCxt", {
+    enumerable: true, get: function () {
+      return validate_12.KeywordCxt;
+    }
+  });
   var codegen_12 = codegen;
-  Object.defineProperty(exports, "_", { enumerable: true, get: function() {
-    return codegen_12._;
-  } });
-  Object.defineProperty(exports, "str", { enumerable: true, get: function() {
-    return codegen_12.str;
-  } });
-  Object.defineProperty(exports, "stringify", { enumerable: true, get: function() {
-    return codegen_12.stringify;
-  } });
-  Object.defineProperty(exports, "nil", { enumerable: true, get: function() {
-    return codegen_12.nil;
-  } });
-  Object.defineProperty(exports, "Name", { enumerable: true, get: function() {
-    return codegen_12.Name;
-  } });
-  Object.defineProperty(exports, "CodeGen", { enumerable: true, get: function() {
-    return codegen_12.CodeGen;
-  } });
+  Object.defineProperty(exports, "_", {
+    enumerable: true, get: function () {
+      return codegen_12._;
+    }
+  });
+  Object.defineProperty(exports, "str", {
+    enumerable: true, get: function () {
+      return codegen_12.str;
+    }
+  });
+  Object.defineProperty(exports, "stringify", {
+    enumerable: true, get: function () {
+      return codegen_12.stringify;
+    }
+  });
+  Object.defineProperty(exports, "nil", {
+    enumerable: true, get: function () {
+      return codegen_12.nil;
+    }
+  });
+  Object.defineProperty(exports, "Name", {
+    enumerable: true, get: function () {
+      return codegen_12.Name;
+    }
+  });
+  Object.defineProperty(exports, "CodeGen", {
+    enumerable: true, get: function () {
+      return codegen_12.CodeGen;
+    }
+  });
   var validation_error_12 = validation_error;
-  Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function() {
-    return validation_error_12.default;
-  } });
+  Object.defineProperty(exports, "ValidationError", {
+    enumerable: true, get: function () {
+      return validation_error_12.default;
+    }
+  });
   var ref_error_12 = ref_error;
-  Object.defineProperty(exports, "MissingRefError", { enumerable: true, get: function() {
-    return ref_error_12.default;
-  } });
+  Object.defineProperty(exports, "MissingRefError", {
+    enumerable: true, get: function () {
+      return ref_error_12.default;
+    }
+  });
 })(ajv, ajv.exports);
 var ajvExports = ajv.exports;
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   exports.formatLimitDefinition = void 0;
   const ajv_1 = ajvExports;
@@ -22646,7 +22786,7 @@ var ajvExports = ajv.exports;
   };
   exports.default = formatLimitPlugin;
 })(limit);
-(function(module, exports) {
+(function (module, exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   const formats_1 = formats;
   const limit_1 = limit;
@@ -22699,7 +22839,7 @@ const copyProperty = (to, from, property, ignoreNonConfigurable) => {
   }
   Object.defineProperty(to, property, fromDescriptor);
 };
-const canCopyProperty = function(toDescriptor, fromDescriptor) {
+const canCopyProperty = function (toDescriptor, fromDescriptor) {
   return toDescriptor === void 0 || toDescriptor.configurable || toDescriptor.writable === fromDescriptor.writable && toDescriptor.enumerable === fromDescriptor.enumerable && toDescriptor.configurable === fromDescriptor.configurable && (toDescriptor.writable || toDescriptor.value === fromDescriptor.value);
 };
 const changePrototype = (to, from) => {
@@ -22748,7 +22888,7 @@ const debounceFunction = (inputFunction, options = {}) => {
   let timeout;
   let maxTimeout;
   let result;
-  const debouncedFunction = function(...arguments_) {
+  const debouncedFunction = function (...arguments_) {
     const context = this;
     const later = () => {
       timeout = void 0;
@@ -22995,7 +23135,7 @@ class Conf {
   }
   /**
       Check if an item exists.
-  
+
       @param key - The key of the item to check.
       */
   has(key) {
@@ -23006,9 +23146,9 @@ class Conf {
   }
   /**
       Reset items to their default values, as defined by the `defaults` or `schema` option.
-  
+
       @see `clear()` to reset all items.
-  
+
       @param keys - The keys of the items to reset.
       */
   reset(...keys2) {
@@ -23029,7 +23169,7 @@ class Conf {
   }
   /**
       Delete all items.
-  
+
       This resets known items to their default values, if defined by the `defaults` or `schema` option.
       */
   clear() {
@@ -23040,7 +23180,7 @@ class Conf {
   }
   /**
       Watches the given `key`, calling `callback` on any changes.
-  
+
       @param key - The key to watch.
       @param callback - A callback function that is called on any changes. When a `key` is first set `oldValue` will be `undefined`, and when a key is deleted `newValue` will be `undefined`.
       @returns A function, that when called, will unsubscribe.
@@ -23056,7 +23196,7 @@ class Conf {
   }
   /**
       Watches the whole config object, calling `callback` on any changes.
-  
+
       @param callback - A callback function that is called on any changes. When a `key` is first set `oldValue` will be `undefined`, and when a key is deleted `newValue` will be `undefined`.
       @returns A function, that when called, will unsubscribe.
       */
@@ -23318,23 +23458,23 @@ function ProcessUncleanExitError(message, code2) {
   if (!(this instanceof ProcessUncleanExitError))
     return new ProcessUncleanExitError(message, code2);
   Error.captureStackTrace(this, ProcessUncleanExitError);
-  this.__defineGetter__("name", function() {
+  this.__defineGetter__("name", function () {
     return ProcessUncleanExitError.name;
   });
-  this.__defineGetter__("message", function() {
+  this.__defineGetter__("message", function () {
     return message;
   });
-  this.__defineGetter__("code", function() {
+  this.__defineGetter__("code", function () {
     return code2;
   });
 }
 util.inherits(ProcessUncleanExitError, Error);
 function captureOutput(child) {
   var output = { "stdout": "", "stderr": "" };
-  child.stdout.on("data", function(data) {
+  child.stdout.on("data", function (data) {
     output["stdout"] += data.toString();
   });
-  child.stderr.on("data", function(data) {
+  child.stderr.on("data", function (data) {
     output["stderr"] += data.toString();
   });
   return output;
@@ -23370,25 +23510,25 @@ function RegistryItem(host, hive, key, name, type2, value, arch) {
   if (!(this instanceof RegistryItem))
     return new RegistryItem(host, hive, key, name, type2, value, arch);
   var _host = host, _hive = hive, _key = key, _name = name, _type = type2, _value = value, _arch = arch;
-  this.__defineGetter__("host", function() {
+  this.__defineGetter__("host", function () {
     return _host;
   });
-  this.__defineGetter__("hive", function() {
+  this.__defineGetter__("hive", function () {
     return _hive;
   });
-  this.__defineGetter__("key", function() {
+  this.__defineGetter__("key", function () {
     return _key;
   });
-  this.__defineGetter__("name", function() {
+  this.__defineGetter__("name", function () {
     return _name;
   });
-  this.__defineGetter__("type", function() {
+  this.__defineGetter__("type", function () {
     return _type;
   });
-  this.__defineGetter__("value", function() {
+  this.__defineGetter__("value", function () {
     return _value;
   });
-  this.__defineGetter__("arch", function() {
+  this.__defineGetter__("arch", function () {
     return _arch;
   });
 }
@@ -23397,22 +23537,22 @@ function Registry(options) {
   if (!(this instanceof Registry))
     return new Registry(options);
   var _options2 = options || {}, _host = "" + (_options2.host || ""), _hive = "" + (_options2.hive || HKLM), _key = "" + (_options2.key || ""), _arch = _options2.arch || null;
-  this.__defineGetter__("host", function() {
+  this.__defineGetter__("host", function () {
     return _host;
   });
-  this.__defineGetter__("hive", function() {
+  this.__defineGetter__("hive", function () {
     return _hive;
   });
-  this.__defineGetter__("key", function() {
+  this.__defineGetter__("key", function () {
     return _key;
   });
-  this.__defineGetter__("path", function() {
+  this.__defineGetter__("path", function () {
     return '"' + (_host.length == 0 ? "" : "\\\\" + _host + "\\") + _hive + _key + '"';
   });
-  this.__defineGetter__("arch", function() {
+  this.__defineGetter__("arch", function () {
     return _arch;
   });
-  this.__defineGetter__("parent", function() {
+  this.__defineGetter__("parent", function () {
     var i = _key.lastIndexOf("\\");
     return new Registry({
       host: this.host,
@@ -23456,7 +23596,7 @@ Registry.prototype.values = function values(cb) {
     stdio: ["ignore", "pipe", "pipe"]
   }), buffer = "", self2 = this, error2 = null;
   var output = captureOutput(proc);
-  proc.on("close", function(code2) {
+  proc.on("close", function (code2) {
     if (error2) {
       return;
     } else if (code2 !== 0) {
@@ -23484,10 +23624,10 @@ Registry.prototype.values = function values(cb) {
       cb(null, result);
     }
   });
-  proc.stdout.on("data", function(data) {
+  proc.stdout.on("data", function (data) {
     buffer += data.toString();
   });
-  proc.on("error", function(err) {
+  proc.on("error", function (err) {
     error2 = err;
     cb(err);
   });
@@ -23506,17 +23646,17 @@ Registry.prototype.keys = function keys(cb) {
     stdio: ["ignore", "pipe", "pipe"]
   }), buffer = "", self2 = this, error2 = null;
   var output = captureOutput(proc);
-  proc.on("close", function(code2) {
+  proc.on("close", function (code2) {
     if (error2) {
       return;
     } else if (code2 !== 0) {
       cb(mkErrorMsg("QUERY", code2, output), null);
     }
   });
-  proc.stdout.on("data", function(data) {
+  proc.stdout.on("data", function (data) {
     buffer += data.toString();
   });
-  proc.stdout.on("end", function() {
+  proc.stdout.on("end", function () {
     var items2 = [], result = [], lines = buffer.split("\n");
     for (var i = 0, l = lines.length; i < l; i++) {
       var line = lines[i].trim();
@@ -23541,7 +23681,7 @@ Registry.prototype.keys = function keys(cb) {
     }
     cb(null, result);
   });
-  proc.on("error", function(err) {
+  proc.on("error", function (err) {
     error2 = err;
     cb(err);
   });
@@ -23564,7 +23704,7 @@ Registry.prototype.get = function get(name, cb) {
     stdio: ["ignore", "pipe", "pipe"]
   }), buffer = "", self2 = this, error2 = null;
   var output = captureOutput(proc);
-  proc.on("close", function(code2) {
+  proc.on("close", function (code2) {
     if (error2) {
       return;
     } else if (code2 !== 0) {
@@ -23590,10 +23730,10 @@ Registry.prototype.get = function get(name, cb) {
       cb(null, result);
     }
   });
-  proc.stdout.on("data", function(data) {
+  proc.stdout.on("data", function (data) {
     buffer += data.toString();
   });
-  proc.on("error", function(err) {
+  proc.on("error", function (err) {
     error2 = err;
     cb(err);
   });
@@ -23619,7 +23759,7 @@ Registry.prototype.set = function set2(name, type2, value, cb) {
     stdio: ["ignore", "pipe", "pipe"]
   }), error2 = null;
   var output = captureOutput(proc);
-  proc.on("close", function(code2) {
+  proc.on("close", function (code2) {
     if (error2) {
       return;
     } else if (code2 !== 0) {
@@ -23628,9 +23768,9 @@ Registry.prototype.set = function set2(name, type2, value, cb) {
       cb(null);
     }
   });
-  proc.stdout.on("data", function(data) {
+  proc.stdout.on("data", function (data) {
   });
-  proc.on("error", function(err) {
+  proc.on("error", function (err) {
     error2 = err;
     cb(err);
   });
@@ -23649,7 +23789,7 @@ Registry.prototype.remove = function remove2(name, cb) {
     stdio: ["ignore", "pipe", "pipe"]
   }), error2 = null;
   var output = captureOutput(proc);
-  proc.on("close", function(code2) {
+  proc.on("close", function (code2) {
     if (error2) {
       return;
     } else if (code2 !== 0) {
@@ -23658,9 +23798,9 @@ Registry.prototype.remove = function remove2(name, cb) {
       cb(null);
     }
   });
-  proc.stdout.on("data", function(data) {
+  proc.stdout.on("data", function (data) {
   });
-  proc.on("error", function(err) {
+  proc.on("error", function (err) {
     error2 = err;
     cb(err);
   });
@@ -23679,7 +23819,7 @@ Registry.prototype.clear = function clear(cb) {
     stdio: ["ignore", "pipe", "pipe"]
   }), error2 = null;
   var output = captureOutput(proc);
-  proc.on("close", function(code2) {
+  proc.on("close", function (code2) {
     if (error2) {
       return;
     } else if (code2 !== 0) {
@@ -23688,9 +23828,9 @@ Registry.prototype.clear = function clear(cb) {
       cb(null);
     }
   });
-  proc.stdout.on("data", function(data) {
+  proc.stdout.on("data", function (data) {
   });
-  proc.on("error", function(err) {
+  proc.on("error", function (err) {
     error2 = err;
     cb(err);
   });
@@ -23710,7 +23850,7 @@ Registry.prototype.destroy = function destroy(cb) {
     stdio: ["ignore", "pipe", "pipe"]
   }), error2 = null;
   var output = captureOutput(proc);
-  proc.on("close", function(code2) {
+  proc.on("close", function (code2) {
     if (error2) {
       return;
     } else if (code2 !== 0) {
@@ -23719,9 +23859,9 @@ Registry.prototype.destroy = function destroy(cb) {
       cb(null);
     }
   });
-  proc.stdout.on("data", function(data) {
+  proc.stdout.on("data", function (data) {
   });
-  proc.on("error", function(err) {
+  proc.on("error", function (err) {
     error2 = err;
     cb(err);
   });
@@ -23740,7 +23880,7 @@ Registry.prototype.create = function create(cb) {
     stdio: ["ignore", "pipe", "pipe"]
   }), error2 = null;
   var output = captureOutput(proc);
-  proc.on("close", function(code2) {
+  proc.on("close", function (code2) {
     if (error2) {
       return;
     } else if (code2 !== 0) {
@@ -23749,16 +23889,16 @@ Registry.prototype.create = function create(cb) {
       cb(null);
     }
   });
-  proc.stdout.on("data", function(data) {
+  proc.stdout.on("data", function (data) {
   });
-  proc.on("error", function(err) {
+  proc.on("error", function (err) {
     error2 = err;
     cb(err);
   });
   return this;
 };
 Registry.prototype.keyExists = function keyExists(cb) {
-  this.values(function(err, items2) {
+  this.values(function (err, items2) {
     if (err) {
       if (err.code == 1) {
         return cb(null, false);
@@ -23770,7 +23910,7 @@ Registry.prototype.keyExists = function keyExists(cb) {
   return this;
 };
 Registry.prototype.valueExists = function valueExists(name, cb) {
-  this.get(name, function(err, item) {
+  this.get(name, function (err, item) {
     if (err) {
       if (err.code == 1) {
         return cb(null, false);
@@ -23791,14 +23931,14 @@ const config = {
     version: "5.0.0",
     description: "Launcher pour serveur Arma 3 Roleplay",
     author: "Équipe Arma 3",
-    website: "https://a3url.com",
-    discord: "https://discord.gg/a3url",
+    website: "https://Arma.com",
+    discord: "https://discord.gg/Arma",
     github: "https://github.com/Joaquinee/AR3URL-Launcher"
   },
   // 🖥️ Informations serveur (selon votre LGSM)
   server: {
     name: "Arma 3 Roleplay Server",
-    shortName: "A3URL RP",
+    shortName: "Arma RP",
     description: "Serveur Roleplay français • Map Altis",
     ip: "82.29.170.30",
     port: 2302,
@@ -23813,12 +23953,12 @@ const config = {
     difficulty: "Vétéran",
     perspective: "1ère/3ème personne",
     whitelist: false,
-    community: "A3URL Community",
-    website: "https://a3url.com"
+    community: "Arma Community",
+    website: "https://Arma.com"
   },
   // 📁 Configuration des mods
   mods: {
-    folderName: "@A3URL",
+    folderName: "@Arma",
     urlMods: "http://82.29.170.30/mods",
     urlRessources: "https://your-server.com/resources",
     manifestUrl: "http://82.29.170.30/mods/manifest.json"
@@ -24053,7 +24193,7 @@ class ManifestService {
 var lib = {};
 var rcon = {};
 var packet = {};
-(function(exports) {
+(function (exports) {
   Object.defineProperty(exports, "__esModule", { value: true });
   function encodePacket(packet2) {
     const buffer = Buffer.alloc(packet2.payload.length + 14);
@@ -24076,7 +24216,7 @@ var packet = {};
     };
   }
   exports.decodePacket = decodePacket;
-  (function(PacketType) {
+  (function (PacketType) {
     PacketType[PacketType["Auth"] = 3] = "Auth";
     PacketType[PacketType["AuthResponse"] = 2] = "AuthResponse";
     PacketType[PacketType["Command"] = 2] = "Command";
@@ -24235,7 +24375,7 @@ class Rcon {
   }
   /**
         Send a command to the server.
-  
+
         @param command The command that will be executed on the server.
         @returns A promise that will be resolved with the command's response from the server.
       */
@@ -24284,7 +24424,7 @@ class Rcon {
   }
 }
 rcon.Rcon = Rcon;
-(function(exports) {
+(function (exports) {
   function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
   }
@@ -24299,7 +24439,7 @@ const _CryptoService = class _CryptoService {
     const appName = app$1.getName();
     const appVersion = app$1.getVersion();
     const machineId = process.env.COMPUTERNAME || process.env.HOSTNAME || "default";
-    const keySource = `${appName}-${appVersion}-${machineId}-A3URL-LAUNCHER-SECRET`;
+    const keySource = `${appName}-${appVersion}-${machineId}-Arma-LAUNCHER-SECRET`;
     return crypto.scryptSync(keySource, "salt", _CryptoService.KEY_LENGTH);
   }
   /**
@@ -24658,9 +24798,9 @@ class NewsService {
     return [
       {
         id: "welcome",
-        title: "Bienvenue sur A3URL RP",
+        title: "Bienvenue sur Arma RP",
         content: "Merci d'avoir installé le launcher ! Assurez-vous d'avoir Arma 3 installé et rejoignez-nous sur le serveur.",
-        author: "Équipe A3URL",
+        author: "Équipe Arma",
         type: "info",
         priority: "medium",
         publishedAt: Date.now(),
@@ -25358,7 +25498,7 @@ const gotTheLock = app$1.requestSingleInstanceLock();
 if (!gotTheLock) {
   app$1.quit();
 } else {
-  let createWindow = function() {
+  let createWindow = function () {
     win = new BrowserWindow({
       icon: path$v.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
       autoHideMenuBar: true,

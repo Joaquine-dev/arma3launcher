@@ -137,9 +137,9 @@ export class NewsService {
     return [
       {
         id: 'welcome',
-        title: 'Bienvenue sur A3URL RP',
+        title: 'Bienvenue sur Arma RP',
         content: 'Merci d\'avoir installé le launcher ! Assurez-vous d\'avoir Arma 3 installé et rejoignez-nous sur le serveur.',
-        author: 'Équipe A3URL',
+        author: 'Équipe Arma',
         type: 'info',
         priority: 'medium',
         publishedAt: Date.now(),

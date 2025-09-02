@@ -35,7 +35,7 @@ https://your-server.com/mods/
 ├── @ace.pbo              (120MB)
 ├── @rhsusf.pbo           (2.1GB)
 ├── @rhsafrf.pbo          (1.8GB)
-└── @a3url_custom.pbo     (350MB)
+└── @modcustom.pbo     (350MB)
 
 https://your-server.com/resources/
 ├── task_force_radio.dll
@@ -332,7 +332,7 @@ open admin-news-panel.html
    Type : Mise à jour
    Priorité : Moyenne
    Contenu : "Ajout de nouveaux véhicules et amélioration des performances..."
-   Auteur : "Admin A3URL"
+   Auteur : "Admin Arma"
    Tags : "update, véhicules, performance"
    ```
 
@@ -515,7 +515,7 @@ fetch('YOUR_DISCORD_WEBHOOK', {
       "id": "1672531200001",
       "title": "🔧 Maintenance Serveur - 2h",
       "content": "Le serveur sera hors ligne de 14h à 16h pour mise à jour majeure. Merci de votre patience.",
-      "author": "Admin A3URL",
+      "author": "Admin Arma",
       "type": "maintenance",
       "priority": "critical",
       "publishedAt": 1672531200000,
@@ -534,7 +534,7 @@ fetch('YOUR_DISCORD_WEBHOOK', {
       "tags": ["event", "weekend", "discord"],
       "actionButton": {
         "text": "S'inscrire sur Discord",
-        "url": "https://discord.gg/a3url"
+        "url": "https://discord.gg/Arma"
       }
     },
     {
@@ -548,7 +548,7 @@ fetch('YOUR_DISCORD_WEBHOOK', {
       "tags": ["update", "véhicules", "performance"],
       "actionButton": {
         "text": "Voir le changelog",
-        "url": "https://a3url.com/changelog"
+        "url": "https://Arma.com/changelog"
       }
     },
     {
