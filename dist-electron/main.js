@@ -23933,26 +23933,48 @@ const config = {
     discord: "https://discord.gg/Arma",
     github: "https://github.com/Joaquinee/AR3URL-Launcher"
   },
-  // 🖥️ Informations serveur (selon votre server)
+  // 🖥️ Configuration des serveurs
+  servers: [
+    {
+      id: "unreallife-main",
+      name: "UnRealLife • Serveur Principal",
+      shortName: "UnRealLife",
+      description: "Serveur Roleplay français • Map Altis • Semi-RP",
+      ip: "188.165.200.136",
+      port: 2302,
+      queryPort: 2303,
+      steamPort: 2304,
+      maxSlots: 64,
+      map: "Altis",
+      gameMode: "Roleplay",
+      difficulty: "Vétéran",
+      perspective: "1ère/3ème personne",
+      whitelist: false,
+      community: "UnRealLife Community",
+      website: "https://unreallife.fr",
+      isDefault: true,
+      status: "RolePLay",
+      // production, beta, maintenance
+      tags: ["Semi-RP", "Français", "AltisLife"]
+    }
+  ],
+  // 🖥️ Serveur par défaut (pour compatibilité)
   server: {
-    name: "Arma 3 Roleplay Server",
-    shortName: "Arma RP",
-    description: "Serveur Roleplay français • Map Altis",
+    name: "UnRealLife • Serveur Principal",
+    shortName: "UnRealLife",
+    description: "Serveur Roleplay français • Map Altis • Semi-RP",
     ip: "188.165.200.136",
     port: 2302,
-    // Port de jeu
     queryPort: 2303,
-    // Port Steam Query
     steamPort: 2304,
-    // Port Steam
     maxSlots: 64,
     map: "Altis",
     gameMode: "Roleplay",
     difficulty: "Vétéran",
     perspective: "1ère/3ème personne",
     whitelist: false,
-    community: "Arma Community",
-    website: "https://Arma.com"
+    community: "UnRealLife Community",
+    website: "https://unreallife.fr"
   },
   // 📁 Configuration des mods
   mods: {
@@ -23996,6 +24018,66 @@ const config = {
     // Vert succès
     particleCount: 30,
     animationDuration: 300
+  },
+  // 🔗 Liens utiles
+  // Pour ajouter/modifier des liens, ajoutez-les dans les catégories appropriées
+  // Catégories disponibles: principal, communaute, communication, vote, information, support
+  // Chaque lien doit avoir: title, description, url, icon (emoji)
+  links: {
+    principal: [
+      {
+        title: "Site Principal",
+        description: "Site officiel du serveur UnRealLife",
+        url: "https://unreallife.fr/",
+        icon: "🌐"
+      },
+      {
+        title: "Intranet",
+        description: "Accès à l'intranet du serveur",
+        url: "https://unreallife.fr/intranet",
+        icon: "🔐"
+      }
+    ],
+    communaute: [
+      {
+        title: "Discord",
+        description: "Rejoignez notre communauté Discord",
+        url: "https://discord.gg/Arma",
+        icon: "💬"
+      }
+    ],
+    communication: [
+      {
+        title: "TeamSpeak 3",
+        description: "Serveur vocal pour la communication en jeu",
+        url: "ts3server://ts.unreallife.fr",
+        icon: "🎤"
+      }
+    ],
+    vote: [
+      {
+        title: "Vote Serveur #1",
+        description: "Votez pour le serveur sur ArmaList",
+        url: "https://www.armalist.com/server/12345",
+        icon: "⭐"
+      }
+    ],
+    information: [
+      {
+        title: "Règlement",
+        description: "Consultez le règlement du serveur",
+        url: "https://unreallife.fr/reglement",
+        icon: "📋"
+      }
+    ],
+    support: [
+      {
+        title: "Support",
+        description: "Besoin d'aide ? Contactez le support",
+        url: "https://unreallife.fr/support",
+        icon: "🆘"
+      }
+    ]
   }
 };
 async function calculateFileSha256(filePath) {
@@ -25464,8 +25546,8 @@ if (!gotTheLock) {
     win = new BrowserWindow({
       icon: path$z.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
       autoHideMenuBar: true,
-      height: 512,
-      width: 800,
+      height: 550,
+      width: 900,
       frame: false,
       maximizable: false,
       minimizable: false,

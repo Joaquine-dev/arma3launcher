@@ -80,8 +80,8 @@ if (!gotTheLock) {
     win = new BrowserWindow({
       icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
       autoHideMenuBar: true,
-      height: 512,
-      width: 800,
+      height: 550,
+      width: 900,
       frame: false,
       maximizable: false,
       minimizable: false,
