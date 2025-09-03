@@ -151,6 +151,9 @@ export function setupIpcHandlers(win: BrowserWindow) {
         );
         store.set("firstLaunch", false);
       }
+
+      // Synchroniser les ressources serveur (DLL à la racine du mod, .ts3_plugin dans task_force_radio)
+      await syncServerResources(win);
     } else {
       store.set("arma3Path", null);
       sendMessage(win, "arma3Path-not-loaded");
@@ -415,18 +418,13 @@ export function setupIpcHandlers(win: BrowserWindow) {
 
       // Chercher les dossiers/plugins TFAR possibles
       const candidates = [
-        path.join(arma3Path, "@task_force_radio", "teamspeak", "plugins"),
-        path.join(arma3Path, "@TaskForceRadio", "teamspeak", "plugins"),
-        path.join(arma3Path, "@tfar", "teamspeak", "plugins"),
-        path.join(arma3Path, config.mods.folderName, "teamspeak", "plugins"),
+        path.join(arma3Path, config.mods.folderName, "task_force_radio"),
+
       ];
 
       // Chercher un fichier .ts3_plugin si existant
       const ts3PluginCandidates = [
-        path.join(arma3Path, "@task_force_radio", "teamspeak"),
-        path.join(arma3Path, "@TaskForceRadio", "teamspeak"),
-        path.join(arma3Path, "@tfar", "teamspeak"),
-        path.join(arma3Path, config.mods.folderName, "teamspeak"),
+        path.join(arma3Path, config.mods.folderName, "task_force_radio"),
       ];
 
       for (const dir of ts3PluginCandidates) {
@@ -570,5 +568,165 @@ async function checkModsWithManifest(win: BrowserWindow) {
     console.error("Erreur lors de la vérification des mods:", error);
     sendMessage(win, "mods-check-error", undefined, "Erreur de vérification");
     return false;
+  }
+}
+
+// Synchronisation des ressources serveur (.dll et .ts3_plugin)
+async function syncServerResources(win: BrowserWindow) {
+
+  console.log("Synchronisation des ressources serveur");
+  const arma3Path = store.get("arma3Path") as string | null;
+  if (!arma3Path) return;
+  console.log(arma3Path);
+
+  const resourcesBaseUrl = config.mods.urlRessources;
+
+  if (!resourcesBaseUrl || resourcesBaseUrl.trim() === "") return;
+
+  console.log(resourcesBaseUrl);
+
+  try {
+    // Essayer de récupérer un index JSON listant les ressources
+    const candidateIndexes = [
+      `${resourcesBaseUrl.replace(/\/$/, "")}/index.json`,
+      `${resourcesBaseUrl.replace(/\/$/, "")}/list.json`,
+    ];
+
+    let resourcesList: Array<string | { name: string; hash?: string; size?: number }> | null = null;
+    for (const idxUrl of candidateIndexes) {
+      try {
+        const res = await fetch(idxUrl);
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json)) {
+            resourcesList = json as Array<string | { name: string; hash?: string; size?: number }>;
+            break;
+          }
+        }
+      } catch {
+        // ignore and try next
+      }
+    }
+
+    // Fallback: pas d'index JSON -> parser des listings HTML (base et /addons/) de manière récursive
+    if (!resourcesList) {
+      const startBases = [
+        resourcesBaseUrl.replace(/\/$/, "/"),
+        `${resourcesBaseUrl.replace(/\/$/, "")}/addons/`,
+      ];
+
+      const visited = new Set<string>();
+      const queue: string[] = [];
+      const collected: string[] = [];
+
+      // Enqueue bases
+      for (const b of startBases) {
+        try {
+          const u = new URL(b);
+          // Forcer slash final pour les dossiers
+          const normalized = u.toString().endsWith("/") ? u.toString() : `${u.toString()}/`;
+          queue.push(normalized);
+        } catch {
+          // ignore invalid URL
+        }
+      }
+
+      const origin = (() => {
+        try { return new URL(resourcesBaseUrl).origin; } catch { return null; }
+      })();
+      const basePathname = (() => {
+        try { return new URL(resourcesBaseUrl).pathname; } catch { return "/"; }
+      })();
+
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (visited.has(current)) continue;
+        visited.add(current);
+        try {
+          const res = await fetch(current);
+          if (!res.ok) continue;
+          const html = await res.text();
+          const hrefRegex = /href\s*=\s*"([^"]+)"/gi;
+          let match: RegExpExecArray | null;
+          while ((match = hrefRegex.exec(html)) !== null) {
+            const href = match[1];
+            if (!href || href === "../") continue;
+            let resolved: string;
+            try {
+              resolved = new URL(href, current).toString();
+            } catch {
+              continue;
+            }
+
+            // Conserver uniquement les URLs dans le même origin et sous le même chemin de base
+            try {
+              const urlObj = new URL(resolved);
+              if (origin && urlObj.origin !== origin) continue;
+              if (!urlObj.pathname.startsWith(basePathname)) continue;
+
+              if (urlObj.pathname.endsWith("/")) {
+                // sous-dossier -> exploration récursive (limiter taille via visited)
+                if (!visited.has(urlObj.toString())) queue.push(urlObj.toString());
+              } else {
+                const lower = urlObj.pathname.toLowerCase();
+                if (lower.endsWith(".dll") || lower.endsWith(".ts3_plugin")) {
+                  if (!collected.includes(urlObj.toString())) collected.push(urlObj.toString());
+                }
+              }
+            } catch {
+              // ignore
+            }
+          }
+        } catch {
+          // ignorer et continuer
+        }
+      }
+
+      if (collected.length > 0) {
+        resourcesList = collected;
+      } else {
+        return; // rien trouvé
+      }
+    }
+
+    const modRoot = path.join(arma3Path, config.mods.folderName);
+    const ts3TargetDir = path.join(modRoot, "task_force_radio");
+    await fs.ensureDir(modRoot);
+    await fs.ensureDir(ts3TargetDir);
+
+    for (const entry of resourcesList) {
+      const name = typeof entry === "string" ? entry : entry?.name;
+      const hash = typeof entry === "object" && entry ? entry.hash : undefined;
+      if (!name || typeof name !== "string") continue;
+
+      const lower = name.toLowerCase();
+      const fileName = path.basename(name);
+      const normalizedBase = resourcesBaseUrl.replace(/\/$/, "");
+      const fileUrl = name.startsWith("http")
+        ? name
+        : `${normalizedBase}/${name.replace(/^\//, "")}`;
+
+      let destination: string | null = null;
+      if (lower.endsWith(".dll")) {
+        // DLL à la racine du dossier du mod
+        destination = path.join(modRoot, fileName);
+      } else if (lower.endsWith(".ts3_plugin")) {
+        // Paquet TS3 dans mods/<folderName>/task_force_radio
+        destination = path.join(ts3TargetDir, fileName);
+      } else {
+        // Autres fichiers ignorés pour l'instant
+        continue;
+      }
+
+      try {
+        await downloadFileWithResume(fileUrl, destination, undefined, hash);
+      } catch (e) {
+        console.warn(`Échec téléchargement ressource: ${name}`, e);
+      }
+    }
+
+    sendMessage(win, "resources-sync-complete", "Ressources synchronisées");
+  } catch (error) {
+    console.error("Erreur synchronisation ressources:", error);
   }
 }

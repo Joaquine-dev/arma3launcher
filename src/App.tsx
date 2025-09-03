@@ -932,6 +932,7 @@ function ModsTab({ state, progress, fileProgress, fileName, eta, modsStatus, onD
 }
 
 // Composant Onglet Paramètres
+//@ts-ignore
 function SettingsTab({ arma3Path, onLocate, onLaunch, state }: {
   arma3Path: string | null
   onLocate: () => void

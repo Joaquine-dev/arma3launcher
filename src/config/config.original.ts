@@ -34,7 +34,7 @@ export const config = {
   mods: {
     folderName: "@Arma",
     urlMods: "http://82.29.170.30/mods",
-    urlRessources: "https://your-server.com/resources",
+    urlRessources: "http://82.29.170.30/ressources",
     manifestUrl: "http://82.29.170.30/mods/manifest.json",
   },
 

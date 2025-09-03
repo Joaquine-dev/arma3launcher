@@ -86,13 +86,8 @@ export const config = {
 
 **Sur votre serveur, exécutez :**
 ```bash
-# Copier le script sur votre serveur
-scp setup-server-manifest.js user@your-server.com:/path/to/
-
 # Sur le serveur
-cd /path/to/your/mods/directory
-node setup-server-manifest.js .
-
+./setup-server-manifest.sh /path/to/your/mods/directory /path/to/your/save/manifest
 # Upload du manifest.json généré
 # Le fichier manifest.json DOIT être accessible via HTTPS
 ```
@@ -106,21 +101,6 @@ node setup-server-manifest.js .
 - [ ] 2. **OBLIGATOIRE** : Régénérer le manifest.json
 - [ ] 3. Vérifier que manifest.json est accessible via HTTPS
 - [ ] 4. Tester avec le launcher
-
-### 🤖 Script automatique recommandé :
-```bash
-#!/bin/bash
-# update-mods.sh - À exécuter après chaque modification
-
-cd /path/to/your/mods/
-echo "🔄 Génération du nouveau manifest..."
-node setup-server-manifest.js .
-
-echo "📡 Upload du manifest..."
-# Votre méthode d'upload (rsync, scp, etc.)
-
-echo "✅ Mods mis à jour !"
-```
 
 ## 🏗️ Build et Distribution
 
@@ -139,23 +119,14 @@ pnpm release
 ### 🔐 Sécurité des Credentials
 
 #### **🔒 Chiffrement Automatique**
+
+# ¨Possibilité d'y rajouter une connexion rcon réel, ou autre donnée sensible
 - ✅ **Développement** : Credentials en clair pour debug
 - ✅ **Production** : Credentials chiffrés automatiquement
 - ✅ **Clé unique** : Basée sur app + machine + version
 - ✅ **Algorithme** : AES-256-GCM (standard militaire)
 
-#### **🛡️ Protection RCON**
-```bash
-# Avant build (config.ts)
-rcon: {
-  password: "mon-super-password"  // ⚠️ En clair
-}
 
-# Après build (dans l'executable)
-rcon: {
-  password: "a1b2c3d4e5f6..."     // ✅ Chiffré
-}
-```
 
 #### **⚙️ Commandes Utiles**
 ```bash

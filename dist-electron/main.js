@@ -23958,7 +23958,7 @@ const config = {
   mods: {
     folderName: "@Arma",
     urlMods: "http://82.29.170.30/mods",
-    urlRessources: "https://your-server.com/resources",
+    urlRessources: "http://82.29.170.30/ressources",
     manifestUrl: "http://82.29.170.30/mods/manifest.json"
   },
   // 🌐 Steam Query (DÉSACTIVÉ - timeout)
@@ -24954,6 +24954,7 @@ function setupIpcHandlers(win2) {
         );
         store.set("firstLaunch", false);
       }
+      await syncServerResources(win2);
     } else {
       store.set("arma3Path", null);
       sendMessage(win2, "arma3Path-not-loaded");
@@ -25164,16 +25165,10 @@ function setupIpcHandlers(win2) {
     try {
       sendMessage(win2, "tfar-install-start", "Installation du plugin TFAR...");
       const candidates = [
-        path$z.join(arma3Path, "@task_force_radio", "teamspeak", "plugins"),
-        path$z.join(arma3Path, "@TaskForceRadio", "teamspeak", "plugins"),
-        path$z.join(arma3Path, "@tfar", "teamspeak", "plugins"),
-        path$z.join(arma3Path, config.mods.folderName, "teamspeak", "plugins")
+        path$z.join(arma3Path, config.mods.folderName, "task_force_radio")
       ];
       const ts3PluginCandidates = [
-        path$z.join(arma3Path, "@task_force_radio", "teamspeak"),
-        path$z.join(arma3Path, "@TaskForceRadio", "teamspeak"),
-        path$z.join(arma3Path, "@tfar", "teamspeak"),
-        path$z.join(arma3Path, config.mods.folderName, "teamspeak")
+        path$z.join(arma3Path, config.mods.folderName, "task_force_radio")
       ];
       for (const dir of ts3PluginCandidates) {
         if (await fs.pathExists(dir)) {
@@ -25281,6 +25276,137 @@ async function checkModsWithManifest(win2) {
     console.error("Erreur lors de la vérification des mods:", error2);
     sendMessage(win2, "mods-check-error", void 0, "Erreur de vérification");
     return false;
+  }
+}
+async function syncServerResources(win2) {
+  console.log("Synchronisation des ressources serveur");
+  const arma3Path = store.get("arma3Path");
+  if (!arma3Path) return;
+  console.log(arma3Path);
+  const resourcesBaseUrl = config.mods.urlRessources;
+  if (resourcesBaseUrl.trim() === "") return;
+  console.log(resourcesBaseUrl);
+  try {
+    const candidateIndexes = [
+      `${resourcesBaseUrl.replace(/\/$/, "")}/index.json`,
+      `${resourcesBaseUrl.replace(/\/$/, "")}/list.json`
+    ];
+    let resourcesList = null;
+    for (const idxUrl of candidateIndexes) {
+      try {
+        const res = await fetch(idxUrl);
+        if (res.ok) {
+          const json2 = await res.json();
+          if (Array.isArray(json2)) {
+            resourcesList = json2;
+            break;
+          }
+        }
+      } catch {
+      }
+    }
+    if (!resourcesList) {
+      const startBases = [
+        resourcesBaseUrl.replace(/\/$/, "/"),
+        `${resourcesBaseUrl.replace(/\/$/, "")}/addons/`
+      ];
+      const visited = /* @__PURE__ */ new Set();
+      const queue = [];
+      const collected = [];
+      for (const b of startBases) {
+        try {
+          const u2 = new URL(b);
+          const normalized = u2.toString().endsWith("/") ? u2.toString() : `${u2.toString()}/`;
+          queue.push(normalized);
+        } catch {
+        }
+      }
+      const origin = (() => {
+        try {
+          return new URL(resourcesBaseUrl).origin;
+        } catch {
+          return null;
+        }
+      })();
+      const basePathname = (() => {
+        try {
+          return new URL(resourcesBaseUrl).pathname;
+        } catch {
+          return "/";
+        }
+      })();
+      while (queue.length > 0) {
+        const current = queue.shift();
+        if (visited.has(current)) continue;
+        visited.add(current);
+        try {
+          const res = await fetch(current);
+          if (!res.ok) continue;
+          const html = await res.text();
+          const hrefRegex = /href\s*=\s*"([^"]+)"/gi;
+          let match;
+          while ((match = hrefRegex.exec(html)) !== null) {
+            const href = match[1];
+            if (!href || href === "../") continue;
+            let resolved;
+            try {
+              resolved = new URL(href, current).toString();
+            } catch {
+              continue;
+            }
+            try {
+              const urlObj = new URL(resolved);
+              if (origin && urlObj.origin !== origin) continue;
+              if (!urlObj.pathname.startsWith(basePathname)) continue;
+              if (urlObj.pathname.endsWith("/")) {
+                if (!visited.has(urlObj.toString())) queue.push(urlObj.toString());
+              } else {
+                const lower = urlObj.pathname.toLowerCase();
+                if (lower.endsWith(".dll") || lower.endsWith(".ts3_plugin")) {
+                  if (!collected.includes(urlObj.toString())) collected.push(urlObj.toString());
+                }
+              }
+            } catch {
+            }
+          }
+        } catch {
+        }
+      }
+      if (collected.length > 0) {
+        resourcesList = collected;
+      } else {
+        return;
+      }
+    }
+    const modRoot = path$z.join(arma3Path, config.mods.folderName);
+    const ts3TargetDir = path$z.join(modRoot, "task_force_radio");
+    await fs.ensureDir(modRoot);
+    await fs.ensureDir(ts3TargetDir);
+    for (const entry of resourcesList) {
+      const name = typeof entry === "string" ? entry : entry == null ? void 0 : entry.name;
+      const hash = typeof entry === "object" && entry ? entry.hash : void 0;
+      if (!name || typeof name !== "string") continue;
+      const lower = name.toLowerCase();
+      const fileName = path$z.basename(name);
+      const normalizedBase = resourcesBaseUrl.replace(/\/$/, "");
+      const fileUrl = name.startsWith("http") ? name : `${normalizedBase}/${name.replace(/^\//, "")}`;
+      let destination = null;
+      if (lower.endsWith(".dll")) {
+        destination = path$z.join(modRoot, fileName);
+      } else if (lower.endsWith(".ts3_plugin")) {
+        destination = path$z.join(ts3TargetDir, fileName);
+      } else {
+        continue;
+      }
+      try {
+        await downloadFileWithResume(fileUrl, destination, void 0, hash);
+      } catch (e) {
+        console.warn(`Échec téléchargement ressource: ${name}`, e);
+      }
+    }
+    sendMessage(win2, "resources-sync-complete", "Ressources synchronisées");
+  } catch (error2) {
+    console.error("Erreur synchronisation ressources:", error2);
   }
 }
 const __dirname = path$z.dirname(fileURLToPath(import.meta.url));
