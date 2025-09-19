@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "timestamp": 1758292052591,
+  "totalSize": 64,
+  "files": [
+    {
+      "name": "Nouveau dossier.pbo",
+      "size": 64,
+      "hash": "955e248a5537b6908ccebc6b89520814cea48ddb1f32efe3d42bbf68ae09988f",
+      "lastModified": 1758291131723
+    }
+  ],
+  "deltaSupport": true
+}
