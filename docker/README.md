@@ -38,3 +38,59 @@ docker-compose down
 ## Configuration
 
 Les mods se trouvent dans `data/mods/` et sont automatiquement détectés par le file-watcher.
+
+
+## Gérer les heures de checks
+
+Le système utilise le fichier `manifest-config.env` pour contrôler quand et comment les manifests sont générés.
+
+### Configuration des heures de vérification
+
+```env
+# Heures de vérification (format: HH:MM, séparées par des virgules)
+CHECK_TIMES=0:00,6:00,12:00,18:00
+
+# Activer la vérification périodique (true/false)
+ENABLE_PERIODIC_CHECK=true
+
+# Activer la surveillance des fichiers (true/false)
+ENABLE_FILE_WATCHING=true
+
+# Intervalle de vérification en millisecondes (60000 = 1 minute)
+GENERATE_INTERVAL=60000
+```
+
+### Paramètres disponibles
+
+- **`CHECK_TIMES`** : Heures auxquelles le système vérifie les changements
+- **`ENABLE_PERIODIC_CHECK`** : Active/désactive la vérification automatique
+- **`ENABLE_FILE_WATCHING`** : Active/désactive la surveillance en temps réel
+- **`GENERATE_INTERVAL`** : Fréquence de vérification des heures configurées
+
+### Exemples de configuration
+
+**Production** (vérifications 4 fois par jour) :
+```env
+CHECK_TIMES=0:00,6:00,12:00,18:00
+ENABLE_PERIODIC_CHECK=true
+ENABLE_FILE_WATCHING=true
+GENERATE_INTERVAL=300000
+```
+
+**Développement** (surveillance en temps réel) :
+```env
+CHECK_TIMES=0:00,12:00
+ENABLE_PERIODIC_CHECK=false
+ENABLE_FILE_WATCHING=true
+GENERATE_INTERVAL=60000
+```
+
+### Appliquer les changements
+
+```bash
+# Redémarrer les services après modification
+docker-compose down && docker-compose up -d
+
+# Vérifier les logs
+docker-compose logs -f manifest-generator
+```
