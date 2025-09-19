@@ -526,7 +526,31 @@ async function checkModsWithManifest(win: BrowserWindow) {
     // TOUJOURS calculer les différences avec le manifest serveur d'abord
     const delta = await manifestService.calculateDelta(addonsPath);
 
-    // Si aucune différence détectée, faire une vérification rapide d'intégrité pour confirmer
+    // Nettoyer les anciens fichiers
+    for (const fileToDelete of delta.toDelete) {
+      const filePath = path.join(addonsPath, fileToDelete);
+      if (await fs.pathExists(filePath)) {
+        await fs.remove(filePath);
+      }
+    }
+
+    // Vérifier si le serveur a des mods ou non
+    const serverManifest = await manifestService.fetchServerManifest();
+    const serverHasNoMods = !serverManifest || serverManifest.files.length === 0;
+
+    // Si le serveur n'a aucun mod, considérer comme synchronisé après nettoyage
+    if (serverHasNoMods && delta.toDownload.length === 0) {
+      // Nettoyer le manifest local s'il n'y a plus de mods sur le serveur
+      const localManifestPath = path.join(modPath, "manifest.json");
+      if (await fs.pathExists(localManifestPath)) {
+        await fs.remove(localManifestPath);
+      }
+
+      sendMessage(win, "mods-check-complete", "Aucun mod requis - synchronisé");
+      return true;
+    }
+
+    // Si aucune différence détectée et qu'il y a des mods sur le serveur, faire une vérification rapide d'intégrité pour confirmer
     if (delta.toDownload.length === 0 && delta.toDelete.length === 0) {
       const isQuickCheckOk = await manifestService.quickIntegrityCheck(
         addonsPath,
@@ -541,14 +565,6 @@ async function checkModsWithManifest(win: BrowserWindow) {
       // Si le check rapide échoue, forcer une re-synchronisation
       console.log("⚠️ Quick check failed, forcing re-sync - will re-download suspicious files");
       // On continue vers la logique de téléchargement pour forcer une re-sync
-    }
-
-    // Nettoyer les anciens fichiers
-    for (const fileToDelete of delta.toDelete) {
-      const filePath = path.join(addonsPath, fileToDelete);
-      if (await fs.pathExists(filePath)) {
-        await fs.remove(filePath);
-      }
     }
 
     // Notifier les mises à jour nécessaires

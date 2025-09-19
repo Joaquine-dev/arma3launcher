@@ -416,7 +416,7 @@ function App() {
           <div className="titlebar-dot titlebar-dot-orange"></div>
           <div className="titlebar-dot titlebar-dot-green"></div>
         </div>
-        <div className="text-xs text-orange-200 font-mono font-semibold tracking-wider">{config.launcher.name.toUpperCase()}</div>
+        <div className="text-xs text-orange-200 font-mono font-semibold tracking-wider">{config.launcher.name.toUpperCase()} V.{config.launcher.version}</div>
         <div className="flex items-center space-x-2" style={{ WebkitAppRegion: 'no-drag' } as any}>
           <button
             onClick={handleMinimize}
@@ -481,8 +481,7 @@ function App() {
               {[
                 { id: 'home', label: 'Accueil', icon: Monitor },
                 { id: 'news', label: 'News', icon: Radio },
-                //A corriger proprement
-                // { id: 'servers', label: 'Serveur', icon: Server },
+                //{ id: 'servers', label: 'Serveurs', icon: Server },
                 { id: 'mods', label: 'Mods', icon: Download },
                 { id: 'links', label: 'Liens', icon: ExternalLink },
                 { id: 'settings', label: 'Config', icon: Settings }
@@ -585,8 +584,11 @@ function HomeTab({
   modsStatus,
   state,
   selectedServer,
+  //@ts-ignore
   servers,
+  //@ts-ignore
   selectedServerId,
+  //@ts-ignore
   onSelectServer,
   onConnect,
   onRefreshStatus
@@ -667,7 +669,8 @@ function HomeTab({
               </span>
             </div>
 
-            {/* Sélecteur de serveur */}
+            {/* Sélecteur de serveur
+
             {servers.length > 1 && (
               <div className="mb-6">
                 <div className="text-center mb-4">
@@ -700,46 +703,45 @@ function HomeTab({
                   ))}
                 </div>
                 {/* Indicateur du serveur sélectionné */}
-                <div className="text-center mt-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 border border-orange-500/20 rounded-full">
-                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-orange-300 font-medium">
-                      {selectedServer?.name || 'Aucun serveur sélectionné'}
-                    </span>
-                  </div>
-                </div>
+            <div className="text-center mt-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 border border-orange-500/20 rounded-full">
+                <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                <span className="text-xs text-orange-300 font-medium">
+                  {selectedServer?.name || 'Aucun serveur sélectionné'}
+                </span>
               </div>
+            </div>
+          </div>
+
+
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap justify-center gap-2">
+            {serverStatus === 'online' && modsStatus === 'synced' ? (
+              <button
+                onClick={onConnect}
+                className="btn-join hero-cta-primary"
+              >
+                <Play className="w-5 h-5" />
+                <span>Rejoindre le serveur</span>
+              </button>
+            ) : (
+              <button
+                onClick={onRefreshStatus}
+                className="btn-join hero-cta-primary"
+              >
+                <Clock className={`w-5 h-5 ${state === 'checking' ? 'animate-spin' : 'animate-pulse'}`} />
+                <span>{state === 'checking' ? 'Vérification...' : 'Actualiser le statut'}</span>
+              </button>
             )}
 
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap justify-center gap-2">
-              {serverStatus === 'online' && modsStatus === 'synced' ? (
-                <button
-                  onClick={onConnect}
-                  className="btn-join hero-cta-primary"
-                >
-                  <Play className="w-5 h-5" />
-                  <span>Rejoindre le serveur</span>
-                </button>
-              ) : (
-                <button
-                  onClick={onRefreshStatus}
-                  className="btn-join hero-cta-primary"
-                >
-                  <Clock className={`w-5 h-5 ${state === 'checking' ? 'animate-spin' : 'animate-pulse'}`} />
-                  <span>{state === 'checking' ? 'Vérification...' : 'Actualiser le statut'}</span>
-                </button>
-              )}
+            {/* Bouton Site Web déplacé pour ne pas être à côté de "Rejoindre le serveur" */}
+          </div>
 
-              {/* Bouton Site Web déplacé pour ne pas être à côté de "Rejoindre le serveur" */}
-            </div>
-
-            {/* Info supplémentaire */}
-            <div className="text-center mt-4 pt-3 border-t border-orange-600/20">
-              <p className="text-xs text-gray-400 max-w-xl mx-auto">
-                <span className="font-medium text-orange-300">90% contenu original</span> • Semi‑RP authentique
-              </p>
-            </div>
+          {/* Info supplémentaire */}
+          <div className="text-center mt-4 pt-3 border-t border-orange-600/20">
+            <p className="text-xs text-gray-400 max-w-xl mx-auto">
+              <span className="font-medium text-orange-300">90% contenu original</span> • Semi‑RP authentique
+            </p>
           </div>
         </div>
       </div>
@@ -1172,7 +1174,7 @@ function LinksTab() {
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {categoryLinks.map((link, index) => (
+              {categoryLinks.map((link: any, index: any) => (
                 <div
                   key={index}
                   onClick={() => handleLinkClick(link.url)}

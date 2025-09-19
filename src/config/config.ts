@@ -3,13 +3,70 @@ export const config = {
   launcher: {
     name: "Arma 3 Launcher",
     shortName: "A3 Launcher",
-    version: "5.0.0",
+    version: "1.0.8",
     description: "Launcher pour serveur Arma 3 Roleplay",
     author: "Équipe Arma 3",
     website: "https://Arma.com",
     discord: "https://discord.gg/Arma",
     github: "https://github.com/Joaquinee/AR3URL-Launcher"
   },
+
+  servers: [
+    {
+      id: "1",
+      name: "Arma 3 Roleplay Server",
+      shortName: "Arma RP",
+      description: "Serveur Roleplay français • Map Altis",
+      ip: "188.165.200.136",
+      port: 2302,
+      maxSlots: 64,
+      status: "production",
+      tags: ["Roleplay", "Français", "Semi-RP"],
+      whitelist: false,
+      isDefault: true
+    },
+    {
+      id: "2",
+      name: "Arma 3 Roleplay Server 2",
+      shortName: "Arma RP 2",
+      description: "Serveur Roleplay français • Map Altis 2",
+      ip: "188.165.200.137",
+      port: 2302,
+      maxSlots: 64,
+      status: "beta",
+      tags: ["Roleplay", "Français", "Beta"],
+      whitelist: false,
+      isDefault: false
+    },
+    {
+      id: "3",
+      name: "Arma 3 Roleplay Server 3",
+      shortName: "Arma RP 3",
+      description: "Serveur Roleplay français • Map Altis 3",
+      ip: "188.165.200.138",
+      port: 2302,
+      maxSlots: 64,
+      status: "maintenance",
+      tags: ["Roleplay", "Français", "Test"],
+      whitelist: true,
+      isDefault: false
+    },
+    {
+      id: "4",
+      name: "Arma 4 Roleplay Server",
+      shortName: "Arma 4 RP",
+      description: "Serveur Roleplay français • Map Altis 4",
+      ip: "188.165.200.139",
+      port: 2302,
+      maxSlots: 64,
+      status: "maintenance",
+      tags: ["Roleplay", "Français", "Futur"],
+      whitelist: true,
+      isDefault: false
+    }
+  ],
+
+
 
   // 🖥️ Informations serveur (selon votre server)
   server: {
@@ -49,6 +106,80 @@ export const config = {
   news: {
     url: "http://82.29.170.30/news/news.json", // ⚠️ Vide = actualités désactivées temporairement
     refreshInterval: 300000, // 5 minutes
+  },
+
+  // 🔗 Liens utiles
+  links: {
+    principal: [
+      {
+        title: "Site Web Officiel",
+        description: "Accédez au site web principal du serveur",
+        url: "https://Arma.com",
+        icon: "🌐"
+      },
+      {
+        title: "Forum Communauté",
+        description: "Discussions et annonces officielles",
+        url: "https://forum.Arma.com",
+        icon: "💬"
+      }
+    ],
+    communaute: [
+      {
+        title: "Discord",
+        description: "Rejoignez notre serveur Discord",
+        url: "https://discord.gg/Arma",
+        icon: "💬"
+      },
+      {
+        title: "Steam Group",
+        description: "Groupe Steam de la communauté",
+        url: "https://steamcommunity.com/groups/Arma",
+        icon: "🎮"
+      }
+    ],
+    communication: [
+      {
+        title: "TeamSpeak 3",
+        description: "Serveur vocal pour la communication en jeu",
+        url: "ts3server://ts.Arma.com",
+        icon: "🎤"
+      },
+      {
+        title: "Guide TFAR",
+        description: "Guide d'utilisation de Task Force Arrowhead Radio",
+        url: "https://Arma.com/guide-tfar",
+        icon: "📡"
+      }
+    ],
+    information: [
+      {
+        title: "Règlement",
+        description: "Règles et conditions d'utilisation du serveur",
+        url: "https://Arma.com/reglement",
+        icon: "📋"
+      },
+      {
+        title: "Guide Débutant",
+        description: "Guide pour bien commencer sur le serveur",
+        url: "https://Arma.com/guide",
+        icon: "📖"
+      }
+    ],
+    support: [
+      {
+        title: "Ticket Support",
+        description: "Créer un ticket de support",
+        url: "https://Arma.com/support",
+        icon: "🎫"
+      },
+      {
+        title: "FAQ",
+        description: "Questions fréquemment posées",
+        url: "https://Arma.com/faq",
+        icon: "❓"
+      }
+    ]
   },
 
   // 🔧 Mode maintenance

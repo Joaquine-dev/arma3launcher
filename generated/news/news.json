@@ -1,0 +1,15 @@
+[
+  {
+    "id": "example-news",
+    "title": "Bienvenue sur le serveur Arma 3 Manifest",
+    "content": "Ce serveur est maintenant opérationnel et prêt à servir vos manifests de mods Arma 3.",
+    "author": "Administrateur",
+    "timestamp": 1640995200000,
+    "priority": "info",
+    "tags": [
+      "information",
+      "serveur",
+      "manifest"
+    ]
+  }
+]

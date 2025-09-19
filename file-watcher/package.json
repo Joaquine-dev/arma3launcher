@@ -1,0 +1,24 @@
+{
+  "name": "arma3-file-watcher",
+  "version": "1.0.0",
+  "description": "Service de surveillance des fichiers pour Arma 3 Manifest Server",
+  "main": "watcher.js",
+  "type": "module",
+  "scripts": {
+    "start": "node watcher.js",
+    "dev": "node --watch watcher.js"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "axios": "^1.6.0",
+    "fs-extra": "^11.1.1"
+  },
+  "keywords": [
+    "arma3",
+    "file-watcher",
+    "manifest",
+    "launcher"
+  ],
+  "author": "Arma 3 Launcher Team",
+  "license": "MIT"
+}
