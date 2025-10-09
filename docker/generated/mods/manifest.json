@@ -1,13 +1,19 @@
 {
   "version": "1.0",
-  "timestamp": 1758292052591,
-  "totalSize": 64,
+  "timestamp": 1759961264717,
+  "totalSize": 3839592,
   "files": [
     {
-      "name": "Nouveau dossier.pbo",
-      "size": 64,
-      "hash": "955e248a5537b6908ccebc6b89520814cea48ddb1f32efe3d42bbf68ae09988f",
-      "lastModified": 1758291131723
+      "name": "aaa.pbo",
+      "size": 1919796,
+      "hash": "c0ed5d23a16a5d23f548e18a179a61df157bb31df3a0a8cefe039992c7e61a35",
+      "lastModified": 1759960278462
+    },
+    {
+      "name": "test.pbo",
+      "size": 1919796,
+      "hash": "c0ed5d23a16a5d23f548e18a179a61df157bb31df3a0a8cefe039992c7e61a35",
+      "lastModified": 1759960278462
     }
   ],
   "deltaSupport": true

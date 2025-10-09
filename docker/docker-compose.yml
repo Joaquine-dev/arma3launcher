@@ -4,8 +4,8 @@ services:
     image: nginx:alpine
     container_name: arma3-manifest-server
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:8080"
+      - "4433:4433"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
@@ -26,7 +26,6 @@ services:
       context: ./manifest-service
       dockerfile: Dockerfile
     container_name: arma3-manifest-generator
-    user: "1001:1001"  # Forcer l'utilisateur nodejs
     volumes:
       - ./data/mods:/app/mods:ro
       - ./data/ressources:/app/ressources:ro
@@ -64,7 +63,6 @@ services:
     restart: unless-stopped
     networks:
       - arma3-network
-
 
 networks:
   arma3-network:

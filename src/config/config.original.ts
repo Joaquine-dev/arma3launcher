@@ -1,12 +1,12 @@
 export const config = {
   // 🎮 Informations du launcher et serveur
   launcher: {
-    name: "Arma 3 Launcher",
-    shortName: "A3 Launcher",
+    name: "Unreallife launcher",
+    shortName: "Unrealife Launcher",
     version: "1.0.8",
-    description: "Launcher pour serveur Arma 3 Roleplay",
-    author: "Équipe Arma 3",
-    website: "https://Arma.com",
+    description: "Launcher pour serveur Unrealife Roleplay",
+    author: "Équipe Unrealife",
+    website: "https://unreallife.com",
     discord: "https://discord.gg/Arma",
     github: "https://github.com/Joaquinee/AR3URL-Launcher"
   },
@@ -24,45 +24,6 @@ export const config = {
       tags: ["Roleplay", "Français", "Semi-RP"],
       whitelist: false,
       isDefault: true
-    },
-    {
-      id: "2",
-      name: "Arma 3 Roleplay Server 2",
-      shortName: "Arma RP 2",
-      description: "Serveur Roleplay français • Map Altis 2",
-      ip: "188.165.200.137",
-      port: 2302,
-      maxSlots: 64,
-      status: "beta",
-      tags: ["Roleplay", "Français", "Beta"],
-      whitelist: false,
-      isDefault: false
-    },
-    {
-      id: "3",
-      name: "Arma 3 Roleplay Server 3",
-      shortName: "Arma RP 3",
-      description: "Serveur Roleplay français • Map Altis 3",
-      ip: "188.165.200.138",
-      port: 2302,
-      maxSlots: 64,
-      status: "maintenance",
-      tags: ["Roleplay", "Français", "Test"],
-      whitelist: true,
-      isDefault: false
-    },
-    {
-      id: "4",
-      name: "Arma 4 Roleplay Server",
-      shortName: "Arma 4 RP",
-      description: "Serveur Roleplay français • Map Altis 4",
-      ip: "188.165.200.139",
-      port: 2302,
-      maxSlots: 64,
-      status: "maintenance",
-      tags: ["Roleplay", "Français", "Futur"],
-      whitelist: true,
-      isDefault: false
     }
   ],
 

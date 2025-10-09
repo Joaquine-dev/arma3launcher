@@ -7,10 +7,6 @@ RUN apk add --no-cache \
   curl \
   && rm -rf /var/cache/apk/*
 
-# Créer un utilisateur non-root pour la sécurité
-RUN addgroup -g 1001 -S nodejs && \
-  adduser -S nodejs -u 1001
-
 # Définir le répertoire de travail
 WORKDIR /app
 
@@ -24,15 +20,9 @@ RUN npm install --only=production && \
 # Copier le code source
 COPY . .
 
-# Créer les répertoires nécessaires
+# Créer les répertoires nécessaires avec les bonnes permissions
 RUN mkdir -p /app/mods /app/ressources /app/news /app/generated && \
-  chown -R nodejs:nodejs /app
-
-# Changer vers l'utilisateur non-root
-USER nodejs
-
-# S'assurer que l'utilisateur peut écrire dans le répertoire generated
-RUN chmod -R 755 /app/generated
+  chmod -R 777 /app/generated
 
 # Exposer le port
 EXPOSE 3000

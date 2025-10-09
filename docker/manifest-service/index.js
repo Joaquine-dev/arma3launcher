@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import chokidar from 'chokidar';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -25,11 +24,6 @@ const MODS_DIR = process.env.MODS_DIR || path.join(__dirname, 'mods');
 const RESSOURCES_DIR = process.env.RESSOURCES_DIR || path.join(__dirname, 'ressources');
 const NEWS_DIR = process.env.NEWS_DIR || path.join(__dirname, 'news');
 const OUTPUT_DIR = process.env.OUTPUT_DIR || path.join(__dirname, 'generated');
-const GENERATE_INTERVAL = parseInt(process.env.GENERATE_INTERVAL) || 300000; // 5 minutes
-
-// Configuration des heures de vérification
-const CHECK_TIMES = process.env.CHECK_TIMES ? process.env.CHECK_TIMES.split(',').map(t => t.trim()) : ['0:00', '6:00', '12:00', '18:00']; // Par défaut: minuit, 6h, midi, 18h
-const ENABLE_PERIODIC_CHECK = process.env.ENABLE_PERIODIC_CHECK === 'true' || false;
 
 // Cache des hashes
 const HASH_CACHE_FILE = path.join(OUTPUT_DIR, '.hash-cache.json');
@@ -171,71 +165,10 @@ app.post('/force-generate', async (req, res) => {
   }
 });
 
-// Configuration du watcher de fichiers
+// Le watcher interne n'est plus nécessaire car on utilise le file-watcher externe
+// Cette fonction est conservée pour compatibilité mais ne fait rien
 function setupFileWatcher() {
-  console.log('👀 Configuration du watcher de fichiers...');
-
-  const watcher = chokidar.watch([MODS_DIR, RESSOURCES_DIR, NEWS_DIR], {
-    ignored: /(^|[\/\\])\../, // ignorer les fichiers cachés
-    persistent: true,
-    ignoreInitial: true
-  });
-
-  watcher.on('add', (filePath) => {
-    console.log(`📁 Nouveau fichier détecté: ${filePath}`);
-    generateAll();
-  });
-
-  watcher.on('change', (filePath) => {
-    console.log(`📝 Fichier modifié: ${filePath}`);
-    generateAll();
-  });
-
-  watcher.on('unlink', (filePath) => {
-    console.log(`🗑️ Fichier supprimé: ${filePath}`);
-    generateAll();
-  });
-
-  watcher.on('error', (error) => {
-    console.error('❌ Erreur du watcher:', error);
-  });
-}
-
-// Fonction pour vérifier si on est dans une heure de vérification
-function isCheckTime() {
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-  const currentTime = `${currentHour}:${currentMinute.toString().padStart(2, '0')}`;
-
-  // Vérifier si l'heure actuelle correspond à une des heures configurées
-  return CHECK_TIMES.some(time => {
-    const [hour, minute] = time.split(':').map(Number);
-    return currentHour === hour && currentMinute === minute;
-  });
-}
-
-// Génération périodique avec vérification des heures
-function setupPeriodicGeneration() {
-  if (!ENABLE_PERIODIC_CHECK) {
-    console.log('⏰ Génération périodique désactivée');
-    return;
-  }
-
-  console.log(`⏰ Configuration de la génération périodique (${GENERATE_INTERVAL}ms)`);
-  console.log(`🕐 Heures de vérification configurées: ${CHECK_TIMES.join(', ')}`);
-
-  setInterval(() => {
-    const now = new Date();
-    const currentTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-    if (isCheckTime()) {
-      console.log(`🕐 Heure de vérification (${currentTime}) - Déclenchement de la génération`);
-      generateAll();
-    } else {
-      console.log(`⏭️ Heure actuelle (${currentTime}) - Pas d'heure de vérification`);
-    }
-  }, GENERATE_INTERVAL);
+  console.log('✅ Watcher de fichiers géré par le service externe');
 }
 
 // Démarrage du serveur
@@ -254,9 +187,8 @@ app.listen(PORT, async () => {
   // Génération initiale
   await generateAll();
 
-  // Configuration du watcher et de la génération périodique
+  // Configuration du watcher de fichiers
   setupFileWatcher();
-  setupPeriodicGeneration();
 });
 
 // Gestion des signaux d'arrêt

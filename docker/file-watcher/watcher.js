@@ -6,9 +6,6 @@ import path from 'path';
 const WATCH_DIR = process.env.WATCH_DIR || '/app/data';
 const OUTPUT_DIR = process.env.OUTPUT_DIR || '/app/generated';
 const MANIFEST_GENERATOR_URL = process.env.MANIFEST_GENERATOR_URL || 'http://manifest-generator:3000';
-
-// Configuration des heures de vérification
-const CHECK_TIMES = process.env.CHECK_TIMES ? process.env.CHECK_TIMES.split(',').map(t => t.trim()) : ['0:00', '6:00', '12:00', '18:00']; // Par défaut: minuit, 6h, midi, 18h
 const ENABLE_FILE_WATCHING = process.env.ENABLE_FILE_WATCHING === 'true' || true;
 
 console.log('👀 Démarrage du service de surveillance des fichiers...');
@@ -16,29 +13,8 @@ console.log(`📁 Répertoire surveillé: ${WATCH_DIR}`);
 console.log(`📁 Répertoire de sortie: ${OUTPUT_DIR}`);
 console.log(`🔗 URL du générateur de manifests: ${MANIFEST_GENERATOR_URL}`);
 
-// Fonction pour vérifier si on est dans une heure de vérification
-function isCheckTime() {
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-
-  // Vérifier si l'heure actuelle correspond à une des heures configurées
-  return CHECK_TIMES.some(time => {
-    const [hour, minute] = time.split(':').map(Number);
-    return currentHour === hour && currentMinute === minute;
-  });
-}
-
 // Fonction pour déclencher la régénération des manifests
 async function triggerManifestGeneration(force = false) {
-  // Vérifier si on est dans une heure de vérification (sauf si forcé)
-  if (!force && !isCheckTime()) {
-    const now = new Date();
-    const currentTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-    console.log(`⏭️ Heure actuelle (${currentTime}) - Pas d'heure de vérification, génération ignorée`);
-    return;
-  }
-
   try {
     console.log('🔄 Déclenchement de la régénération des manifests...');
 
@@ -89,7 +65,6 @@ function setupFileWatcher() {
   }
 
   console.log('🔧 Configuration du watcher de fichiers...');
-  console.log(`🕐 Heures de vérification configurées: ${CHECK_TIMES.join(', ')}`);
 
   const watcher = chokidar.watch(WATCH_DIR, {
     ignored: [
@@ -106,6 +81,9 @@ function setupFileWatcher() {
     ],
     persistent: true,
     ignoreInitial: true,
+    usePolling: true, // Utiliser le polling pour Docker/Windows
+    interval: 1000, // Vérifier toutes les 1 secondes
+    binaryInterval: 3000, // Vérifier les fichiers binaires toutes les 3 secondes
     awaitWriteFinish: {
       stabilityThreshold: 2000,
       pollInterval: 100

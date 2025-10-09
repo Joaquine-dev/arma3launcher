@@ -51,7 +51,7 @@ Le système utilise le fichier `manifest-config.env` pour contrôler quand et co
 CHECK_TIMES=0:00,6:00,12:00,18:00
 
 # Activer la vérification périodique (true/false)
-ENABLE_PERIODIC_CHECK=true
+ENABLE_PERIODIC_CHECK=false
 
 # Activer la surveillance des fichiers (true/false)
 ENABLE_FILE_WATCHING=true
@@ -72,7 +72,7 @@ GENERATE_INTERVAL=60000
 **Production** (vérifications 4 fois par jour) :
 ```env
 CHECK_TIMES=0:00,6:00,12:00,18:00
-ENABLE_PERIODIC_CHECK=true
+ENABLE_PERIODIC_CHECK=false
 ENABLE_FILE_WATCHING=true
 GENERATE_INTERVAL=300000
 ```
