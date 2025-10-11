@@ -22,6 +22,40 @@ const store = new Store({
 let newsService: NewsService | null = null;
 let steamQueryService: SteamQueryService | null = null;
 
+// Gestion globale d'exclusion mutuelle des opérations de mods
+type OperationType = "checking" | "downloading" | "syncing-resources";
+let currentOperation: OperationType | "idle" = "idle";
+let operationStartedAt: number | null = null;
+
+function beginOperation(op: OperationType, win: BrowserWindow): boolean {
+  if (currentOperation !== "idle") return false;
+  currentOperation = op;
+  operationStartedAt = Date.now();
+  // Notifier le front d'un démarrage d'opération
+  sendMessage(win, "mods-operation-start", op);
+  return true;
+}
+
+function endOperation(win: BrowserWindow): void {
+  const finished = currentOperation;
+  const durationSec = operationStartedAt ? Math.round((Date.now() - operationStartedAt) / 1000) : 0;
+  currentOperation = "idle";
+  operationStartedAt = null;
+  // Notifier le front de la fin d'opération
+  sendMessage(win, "mods-operation-end", finished, undefined, undefined, undefined, `${durationSec}s`);
+}
+
+function notifyBusy(win: BrowserWindow, requested: OperationType): void {
+  // Indiquer au front qu'une autre opération est en cours
+  sendMessage(
+    win,
+    "mods-operation-busy",
+    undefined,
+    `Opération en cours: ${currentOperation}`,
+    requested
+  );
+}
+
 // Fonction pour récupérer le chemin d'Arma 3 depuis le registre Windows
 async function getArma3PathFromRegistry(): Promise<string | null> {
   return new Promise((resolve) => {
@@ -150,7 +184,15 @@ export function setupIpcHandlers(win: BrowserWindow) {
       }
 
       // Synchroniser les ressources serveur (DLL à la racine du mod, .ts3_plugin dans task_force_radio)
-      await syncServerResources(win);
+      if (beginOperation("syncing-resources", win)) {
+        try {
+          await syncServerResources(win);
+        } finally {
+          endOperation(win);
+        }
+      } else {
+        notifyBusy(win, "syncing-resources");
+      }
     } else {
       store.set("arma3Path", null);
       sendMessage(win, "arma3Path-not-loaded");
@@ -204,9 +246,14 @@ export function setupIpcHandlers(win: BrowserWindow) {
 
   // Gestionnaire de téléchargement des mods OPTIMISÉ avec Manifest
   ipcMain.on("download-mods", async () => {
+    if (!beginOperation("downloading", win)) {
+      notifyBusy(win, "downloading");
+      return;
+    }
     const arma3Path = store.get("arma3Path") as string | null;
     if (!arma3Path) {
       sendMessage(win, "download-error", undefined, "Chemin Arma 3 non trouvé");
+      endOperation(win);
       return;
     }
 
@@ -313,6 +360,8 @@ export function setupIpcHandlers(win: BrowserWindow) {
         undefined,
         error instanceof Error ? error.message : "Erreur inconnue"
       );
+    } finally {
+      endOperation(win);
     }
   });
 
@@ -533,6 +582,11 @@ async function checkModsWithManifest(win: BrowserWindow) {
   const arma3Path = store.get("arma3Path") as string | null;
   if (!arma3Path) return false;
 
+  if (!beginOperation("checking", win)) {
+    notifyBusy(win, "checking");
+    return false;
+  }
+
   const modPath = `${arma3Path}\\${config.mods.folderName}`;
   const addonsPath = `${modPath}\\addons`;
 
@@ -619,6 +673,8 @@ async function checkModsWithManifest(win: BrowserWindow) {
     console.error("Erreur lors de la vérification des mods:", error);
     sendMessage(win, "mods-check-error", undefined, "Erreur de vérification");
     return false;
+  } finally {
+    endOperation(win);
   }
 }
 
