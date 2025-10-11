@@ -27,12 +27,33 @@ type OperationType = "checking" | "downloading" | "syncing-resources";
 let currentOperation: OperationType | "idle" = "idle";
 let operationStartedAt: number | null = null;
 
+// État de synchronisation des mods
+let modsUpToDate: boolean = false;
+let pendingDownloadsCount: number = 0;
+
+function broadcastModsStatus(win: BrowserWindow) {
+  const payload = {
+    busy: currentOperation !== "idle",
+    operation: currentOperation,
+    modsUpToDate,
+    pendingDownloadsCount,
+  };
+  sendMessage(win, "mods-status", JSON.stringify(payload));
+}
+
+function setModsStatus(win: BrowserWindow, next: { modsUpToDate?: boolean; pendingDownloadsCount?: number }) {
+  if (typeof next.modsUpToDate === "boolean") modsUpToDate = next.modsUpToDate;
+  if (typeof next.pendingDownloadsCount === "number") pendingDownloadsCount = next.pendingDownloadsCount;
+  broadcastModsStatus(win);
+}
+
 function beginOperation(op: OperationType, win: BrowserWindow): boolean {
   if (currentOperation !== "idle") return false;
   currentOperation = op;
   operationStartedAt = Date.now();
   // Notifier le front d'un démarrage d'opération
   sendMessage(win, "mods-operation-start", op);
+  broadcastModsStatus(win);
   return true;
 }
 
@@ -43,6 +64,7 @@ function endOperation(win: BrowserWindow): void {
   operationStartedAt = null;
   // Notifier le front de la fin d'opération
   sendMessage(win, "mods-operation-end", finished, undefined, undefined, undefined, `${durationSec}s`);
+  broadcastModsStatus(win);
 }
 
 function notifyBusy(win: BrowserWindow, requested: OperationType): void {
@@ -164,14 +186,13 @@ export function setupIpcHandlers(win: BrowserWindow) {
     }
 
     if (arma3Path && arma3Path !== "null") {
-      // Vérifie l'installation du mod
+      // On signale seulement que le chemin est prêt; l'état Play dépendra de la vérification/manifests
       const modInstalled = isModInstalled(arma3Path);
-      sendMessage(
-        win,
-        modInstalled ? "arma3Path-mod-loaded" : "arma3Path-mod-not-loaded",
-        undefined,
-        !modInstalled ? `Mod ${config.mods.folderName} non installé` : undefined
-      );
+      if (modInstalled) {
+        sendMessage(win, "arma3Path-ready", "Arma 3 trouvé");
+      } else {
+        sendMessage(win, "arma3Path-mod-not-loaded", undefined, `Mod ${config.mods.folderName} non installé`);
+      }
 
       // Message de première utilisation
       if (firstLaunch) {
@@ -198,6 +219,8 @@ export function setupIpcHandlers(win: BrowserWindow) {
       sendMessage(win, "arma3Path-not-loaded");
     }
 
+    // Publier un état initial puis lancer une vérification
+    broadcastModsStatus(win);
     // Vérification optimisée des mods
     await checkModsWithManifest(win);
   });
@@ -240,6 +263,10 @@ export function setupIpcHandlers(win: BrowserWindow) {
 
   // Gestionnaire de vérification manuelle des mods
   ipcMain.on("check-mods", async () => {
+    if (currentOperation !== "idle") {
+      notifyBusy(win, "checking");
+      return;
+    }
     console.log("🔄 Vérification manuelle des mods demandée");
     await checkModsWithManifest(win);
   });
@@ -267,6 +294,7 @@ export function setupIpcHandlers(win: BrowserWindow) {
       // Utiliser le système Manifest pour téléchargement optimisé
       const manifestService = new ManifestService(config.mods.manifestUrl, modPath);
       const delta = await manifestService.calculateDelta(addonsPath);
+      setModsStatus(win, { pendingDownloadsCount: delta.toDownload.length });
 
       // Nettoyer les fichiers orphelins AVANT le téléchargement
       if (delta.toDelete.length > 0) {
@@ -293,6 +321,7 @@ export function setupIpcHandlers(win: BrowserWindow) {
       }
 
       if (delta.toDownload.length === 0) {
+        setModsStatus(win, { modsUpToDate: true, pendingDownloadsCount: 0 });
         sendMessage(win, "download-complete", "Mods déjà à jour");
         return;
       }
@@ -351,6 +380,7 @@ export function setupIpcHandlers(win: BrowserWindow) {
       }
 
       sendMessage(win, "download-complete", "Mods synchronisés avec succès");
+      setModsStatus(win, { modsUpToDate: true, pendingDownloadsCount: 0 });
       sendMessage(win, "arma3Path-mod-loaded", "Jeu prêt à être lancé");
     } catch (error) {
       console.error("Erreur lors de la synchronisation des mods:", error);
@@ -374,6 +404,14 @@ export function setupIpcHandlers(win: BrowserWindow) {
 
   // Gestionnaire de lancement du jeu
   ipcMain.handle("launch-game", async () => {
+    if (currentOperation !== "idle") {
+      sendMessage(win, "launch-game-error", undefined, "Opération en cours — veuillez patienter");
+      return;
+    }
+    if (!modsUpToDate) {
+      sendMessage(win, "launch-game-error", undefined, "Mods non synchronisés — lancez la synchronisation");
+      return;
+    }
     const arma3Path = store.get("arma3Path") as string | null;
 
     const defaultParamsx64 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi_x64 -hugePages -noPause -noPauseAudio";
@@ -401,6 +439,14 @@ export function setupIpcHandlers(win: BrowserWindow) {
 
   // Connexion directe au serveur (lancement + -connect/-port)
   ipcMain.handle("connect-server", async () => {
+    if (currentOperation !== "idle") {
+      sendMessage(win, "launch-game-error", undefined, "Opération en cours — veuillez patienter");
+      return;
+    }
+    if (!modsUpToDate) {
+      sendMessage(win, "launch-game-error", undefined, "Mods non synchronisés — lancez la synchronisation");
+      return;
+    }
     const arma3Path = store.get("arma3Path") as string | null;
 
     const defaultParamsx64 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi_x64 -hugePages -noPause -noPauseAudio";
@@ -598,6 +644,7 @@ async function checkModsWithManifest(win: BrowserWindow) {
 
     // TOUJOURS calculer les différences avec le manifest serveur d'abord
     const delta = await manifestService.calculateDelta(addonsPath);
+    setModsStatus(win, { pendingDownloadsCount: delta.toDownload.length });
 
     // Nettoyer les anciens fichiers
     if (delta.toDelete.length > 0) {
@@ -636,6 +683,7 @@ async function checkModsWithManifest(win: BrowserWindow) {
       }
 
       sendMessage(win, "mods-check-complete", "Aucun mod requis - synchronisé");
+      setModsStatus(win, { modsUpToDate: true, pendingDownloadsCount: 0 });
       return true;
     }
 
@@ -648,6 +696,7 @@ async function checkModsWithManifest(win: BrowserWindow) {
 
       if (isQuickCheckOk) {
         sendMessage(win, "mods-check-complete", "Mods à jour");
+        setModsStatus(win, { modsUpToDate: true, pendingDownloadsCount: 0 });
         return true;
       }
 
@@ -666,6 +715,7 @@ async function checkModsWithManifest(win: BrowserWindow) {
         "updateMod-needed",
         `${delta.toDownload.length} fichier(s) à synchroniser (${sizeGB} GB)`
       );
+      setModsStatus(win, { modsUpToDate: false, pendingDownloadsCount: delta.toDownload.length });
     }
 
     return true;
