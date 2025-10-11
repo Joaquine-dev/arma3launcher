@@ -390,6 +390,8 @@ export function setupIpcHandlers(win: BrowserWindow) {
         undefined,
         error instanceof Error ? error.message : "Erreur inconnue"
       );
+    // En cas d'erreur, considérer les mods comme non synchronisés
+    setModsStatus(win, { modsUpToDate: false });
     } finally {
       endOperation(win);
     }
@@ -722,6 +724,7 @@ async function checkModsWithManifest(win: BrowserWindow) {
   } catch (error) {
     console.error("Erreur lors de la vérification des mods:", error);
     sendMessage(win, "mods-check-error", undefined, "Erreur de vérification");
+    setModsStatus(win, { modsUpToDate: false });
     return false;
   } finally {
     endOperation(win);
