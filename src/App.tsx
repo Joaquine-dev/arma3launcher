@@ -16,10 +16,10 @@ function App() {
   const [eta, setEta] = useState<string>('')
   const [modsStatus, setModsStatus] = useState<'synced' | 'outdated' | 'downloading'>('synced')
   const [playerCount, setPlayerCount] = useState<number>(0)
-  const [maxPlayers, setMaxPlayers] = useState<number>(config.server.maxSlots)
+  const [maxPlayers, setMaxPlayers] = useState<number>(config.servers[0].maxSlots)
   const [serverStatus, setServerStatus] = useState<'online' | 'offline'>('offline')
-  const [serverName, setServerName] = useState<string>(config.server.name)
-  const [serverMap, setServerMap] = useState<string>(config.server.map)
+  const [serverName, setServerName] = useState<string>(config.servers[0].name)
+  const [serverMap, setServerMap] = useState<string>('')
   const [serverPing, setServerPing] = useState<number>(0)
   const [serverFps, setServerFps] = useState<number>(0)
   const [serverUptime, setServerUptime] = useState<string>('0:00:00')
@@ -83,6 +83,22 @@ function App() {
           setTimeout(() => setLastToastMessage(''), 1000)
         }
       }
+      if (message === 'cleanup-start') {
+        setState('downloading')
+        setModsStatus('downloading')
+        if (lastToastMessage !== toastKey) {
+          setLastToastMessage(toastKey)
+          toast.loading('🗑️ ' + (success || 'Nettoyage en cours...'), { id: 'cleanup' })
+          setTimeout(() => setLastToastMessage(''), 1000)
+        }
+      }
+      if (message === 'cleanup-complete') {
+        if (lastToastMessage !== toastKey) {
+          setLastToastMessage(toastKey)
+          toast.success('✅ ' + (success || 'Nettoyage terminé'), { id: 'cleanup' })
+          setTimeout(() => setLastToastMessage(''), 1000)
+        }
+      }
       if (message === 'download-start') {
         setState('downloading')
         setModsStatus('downloading')
@@ -143,14 +159,15 @@ function App() {
       }
       if (message === 'server-info-update') {
         try {
+          const defaultServer = config.servers.find(s => s.isDefault) || config.servers[0]
           const serverInfo = JSON.parse(data || '{}')
           if (serverInfo && serverInfo.isOnline) {
             setHasRconData(true)
             setPlayerCount(serverInfo.playerCount || 0)
-            setMaxPlayers(serverInfo.maxPlayers || config.server.maxSlots)
+            setMaxPlayers(serverInfo.maxPlayers || defaultServer.maxSlots)
             setServerStatus('online')
-            setServerName(serverInfo.serverName || config.server.name)
-            setServerMap(serverInfo.map || config.server.map)
+            setServerName(serverInfo.serverName || defaultServer.name)
+            setServerMap(serverInfo.map || 'Unknown')
             setServerPing(serverInfo.ping || 0)
             setServerFps(serverInfo.fps || 0)
             setServerUptime(serverInfo.uptime || '0:00:00')
@@ -188,10 +205,10 @@ function App() {
       if (serverInfo && serverInfo.isOnline) {
         setHasRconData(true)
         setPlayerCount(serverInfo.playerCount || 0)
-        setMaxPlayers(serverInfo.maxPlayers || config.server.maxSlots)
+        setMaxPlayers(serverInfo.maxPlayers || config.servers[0].maxSlots)
         setServerStatus('online')
-        setServerName(serverInfo.serverName || config.server.name)
-        setServerMap(serverInfo.map || config.server.map)
+        setServerName(serverInfo.serverName || config.servers[0].name)
+        setServerMap(serverInfo.map || '')
         setServerPing(serverInfo.ping || 0)
         setServerFps(serverInfo.fps || 0)
         setServerUptime(serverInfo.uptime || '0:00:00')
@@ -202,8 +219,8 @@ function App() {
         setPlayerCount(0)
         setServerPing(0)
         setServerFps(0)
-        setServerName(config.server.name) // Garder le nom de config
-        setServerMap(config.server.map) // Garder la map de config
+        setServerName(config.servers[0].name) // Garder le nom de config
+        setServerMap('') // Garder la map de config
       }
     })
 
@@ -235,10 +252,10 @@ function App() {
           if (serverInfo && serverInfo.isOnline) {
             setHasRconData(true)
             setPlayerCount(serverInfo.playerCount || 0)
-            setMaxPlayers(serverInfo.maxPlayers || config.server.maxSlots)
+            setMaxPlayers(serverInfo.maxPlayers || config.servers[0].maxSlots)
             setServerStatus('online')
-            setServerName(serverInfo.serverName || config.server.name)
-            setServerMap(serverInfo.map || config.server.map)
+            setServerName(serverInfo.serverName || config.servers[0].name)
+            setServerMap(serverInfo.map || '')
             setServerPing(serverInfo.ping || 0)
             setServerFps(serverInfo.fps || 0)
             setServerUptime(serverInfo.uptime || '0:00:00')
@@ -248,8 +265,8 @@ function App() {
             setPlayerCount(0)
             setServerPing(0)
             setServerFps(0)
-            setServerName(config.server.name)
-            setServerMap(config.server.map)
+            setServerName(config.servers[0].name)
+            setServerMap('')
           }
         })
       }
@@ -339,10 +356,10 @@ function App() {
       if (serverInfo && serverInfo.isOnline) {
         setHasRconData(true)
         setPlayerCount(serverInfo.playerCount || 0)
-        setMaxPlayers(serverInfo.maxPlayers || config.server.maxSlots)
+        setMaxPlayers(serverInfo.maxPlayers || config.servers[0].maxSlots)
         setServerStatus('online')
-        setServerName(serverInfo.serverName || config.server.name)
-        setServerMap(serverInfo.map || config.server.map)
+        setServerName(serverInfo.serverName || config.servers[0].name)
+        setServerMap(serverInfo.map || '')
         setServerPing(serverInfo.ping || 0)
         setServerFps(serverInfo.fps || 0)
         setServerUptime(serverInfo.uptime || '0:00:00')
@@ -352,8 +369,8 @@ function App() {
         setPlayerCount(0)
         setServerPing(0)
         setServerFps(0)
-        setServerName(config.server.name)
-        setServerMap(config.server.map)
+        setServerName(config.servers[0].name)
+        setServerMap('')
       }
       setState('ready')
     })

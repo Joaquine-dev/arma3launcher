@@ -70,42 +70,39 @@ function sendMessage(
 // Gestionnaire principal IPC
 export function setupIpcHandlers(win: BrowserWindow) {
   // Initialiser Steam Query (SANS MOT DE PASSE)
-  if (config.steamQuery.enabled) {
-    steamQueryService = new SteamQueryService();
-    console.log(`✅ Steam Query activé pour ${config.server.ip}:${config.server.port}`);
+  steamQueryService = new SteamQueryService();
+  console.log(`✅ Steam Query activé pour ${config.servers[0].ip}:${config.servers[0].queryPort}`);
 
-    // Mettre à jour les infos serveur via Steam Query
-    setInterval(async () => {
-      try {
-        const serverInfo = await steamQueryService!.getPublicServerInfo();
-        if (serverInfo.isOnline) {
-          sendMessage(win, "server-info-update", JSON.stringify({
-            playerCount: serverInfo.playerCount,
-            maxPlayers: serverInfo.maxPlayers,
-            serverName: serverInfo.serverName,
-            map: serverInfo.map,
-            gameMode: serverInfo.gameMode,
-            ping: serverInfo.ping,
-            isOnline: true,
-            fps: 0, // Pas disponible via Steam Query
-            uptime: '0:00:00', // Pas disponible via Steam Query
-            playerList: serverInfo.playerList
-          }));
-        } else {
-          // Serveur hors ligne
-          sendMessage(win, "server-info-update", JSON.stringify({
-            isOnline: false
-          }));
-        }
-      } catch (error) {
-        console.error("Erreur mise à jour infos serveur:", error);
-        // En cas d'erreur, indiquer que le serveur est hors ligne
+  // Mettre à jour les infos serveur via Steam Query
+  setInterval(async () => {
+    try {
+      const serverInfo = await steamQueryService!.getPublicServerInfo();
+      if (serverInfo.isOnline) {
+        sendMessage(win, "server-info-update", JSON.stringify({
+          playerCount: serverInfo.playerCount,
+          maxPlayers: serverInfo.maxPlayers,
+          serverName: serverInfo.serverName,
+          map: serverInfo.map,
+          gameMode: serverInfo.gameMode,
+          ping: serverInfo.ping,
+          isOnline: true,
+          fps: 0, // Pas disponible via Steam Query
+          uptime: '0:00:00', // Pas disponible via Steam Query
+          playerList: serverInfo.playerList
+        }));
+      } else {
+        // Serveur hors ligne - envoyer info sans logger
         sendMessage(win, "server-info-update", JSON.stringify({
           isOnline: false
         }));
       }
-    }, config.steamQuery.refreshInterval);
-  }
+    } catch (error) {
+      // Erreur déjà loggée dans SteamQueryService
+      sendMessage(win, "server-info-update", JSON.stringify({
+        isOnline: false
+      }));
+    }
+  }, 30000); // 30 secondes
 
   // Initialiser le service d'actualités
   const arma3DataPath = path.join(process.env.APPDATA || process.env.HOME || '', 'arma3-data');
@@ -223,6 +220,30 @@ export function setupIpcHandlers(win: BrowserWindow) {
       // Utiliser le système Manifest pour téléchargement optimisé
       const manifestService = new ManifestService(config.mods.manifestUrl, modPath);
       const delta = await manifestService.calculateDelta(addonsPath);
+
+      // Nettoyer les fichiers orphelins AVANT le téléchargement
+      if (delta.toDelete.length > 0) {
+        console.log(`🗑️ Suppression de ${delta.toDelete.length} fichier(s) orphelin(s)...`);
+        sendMessage(win, "cleanup-start", `Nettoyage de ${delta.toDelete.length} fichier(s) obsolète(s)...`);
+
+        let deletedCount = 0;
+        for (const fileToDelete of delta.toDelete) {
+          const filePath = path.join(addonsPath, fileToDelete);
+          try {
+            if (await fs.pathExists(filePath)) {
+              await fs.remove(filePath);
+              deletedCount++;
+              console.log(`   ✅ Supprimé: ${fileToDelete}`);
+            }
+          } catch (error) {
+            console.error(`   ❌ Erreur suppression ${fileToDelete}:`, error);
+          }
+        }
+
+        if (deletedCount > 0) {
+          sendMessage(win, "cleanup-complete", `${deletedCount} fichier(s) supprimé(s) avec succès`);
+        }
+      }
 
       if (delta.toDownload.length === 0) {
         sendMessage(win, "download-complete", "Mods déjà à jour");
@@ -348,7 +369,7 @@ export function setupIpcHandlers(win: BrowserWindow) {
       return;
     }
 
-    const connectArgs = `-connect=${config.server.ip} -port=${config.server.port}`;
+    const connectArgs = `-connect=${config.servers[0].ip} -port=${config.servers[0].port}`;
     spawn(arma3PathExe, [`${defaultParams} ${connectArgs}`]);
     sendMessage(win, "launch-game-success", "Jeu lancé — connexion au serveur en cours");
 
@@ -505,8 +526,6 @@ export function setupIpcHandlers(win: BrowserWindow) {
   ipcMain.on("minimize-app", () => {
     win.minimize();
   });
-
-
 }
 
 // Vérification optimisée des mods avec Manifest
@@ -527,10 +546,26 @@ async function checkModsWithManifest(win: BrowserWindow) {
     const delta = await manifestService.calculateDelta(addonsPath);
 
     // Nettoyer les anciens fichiers
-    for (const fileToDelete of delta.toDelete) {
-      const filePath = path.join(addonsPath, fileToDelete);
-      if (await fs.pathExists(filePath)) {
-        await fs.remove(filePath);
+    if (delta.toDelete.length > 0) {
+      console.log(`🗑️ Suppression de ${delta.toDelete.length} fichier(s) orphelin(s)...`);
+      sendMessage(win, "cleanup-start", `Nettoyage de ${delta.toDelete.length} fichier(s) obsolète(s)...`);
+
+      let deletedCount = 0;
+      for (const fileToDelete of delta.toDelete) {
+        const filePath = path.join(addonsPath, fileToDelete);
+        try {
+          if (await fs.pathExists(filePath)) {
+            await fs.remove(filePath);
+            deletedCount++;
+            console.log(`   ✅ Supprimé: ${fileToDelete}`);
+          }
+        } catch (error) {
+          console.error(`   ❌ Erreur suppression ${fileToDelete}:`, error);
+        }
+      }
+
+      if (deletedCount > 0) {
+        sendMessage(win, "cleanup-complete", `${deletedCount} fichier(s) supprimé(s) avec succès`);
       }
     }
 

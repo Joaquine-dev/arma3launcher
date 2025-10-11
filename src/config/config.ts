@@ -2,70 +2,30 @@ export const config = {
   // 🎮 Informations du launcher et serveur
   launcher: {
     name: "Unreallife launcher",
-    shortName: "Unrealife Launcher",
-    version: "1.0.8",
-    description: "Launcher pour serveur Unrealife Roleplay",
-    author: "Équipe Unrealife",
-    website: "https://unreallife.com",
-    discord: "https://discord.gg/Arma",
-    github: "https://github.com/Joaquinee/AR3URL-Launcher"
+    version: "1.0.0",
   },
-
   servers: [
     {
       id: "1",
       name: "Arma 3 Roleplay Server",
-      shortName: "Arma RP",
-      description: "Serveur Roleplay français • Map Altis",
-      ip: "188.165.200.136",
+      ip: "91.134.62.7",
       port: 2302,
+      queryPort: 2303,
       maxSlots: 64,
-      status: "production",
-      tags: ["Roleplay", "Français", "Semi-RP"],
-      whitelist: false,
       isDefault: true
     }
   ],
 
-
-
-  // 🖥️ Informations serveur (selon votre server)
-  server: {
-    name: "Arma 3 Roleplay Server",
-    shortName: "Arma RP",
-    description: "Serveur Roleplay français • Map Altis",
-    ip: "188.165.200.136",
-    port: 2302,        // Port de jeu
-    queryPort: 2303,   // Port Steam Query
-    steamPort: 2304,   // Port Steam
-    maxSlots: 64,
-    map: "Altis",
-    gameMode: "Roleplay",
-    difficulty: "Vétéran",
-    perspective: "1ère/3ème personne",
-    whitelist: false,
-    community: "Arma Community",
-    website: "https://Arma.com"
-  },
-
-  // 📁 Configuration des mods
   mods: {
-    folderName: "@A3URL",
-    urlMods: "http://188.165.200.136:8080/mods",
-    urlRessources: "http://188.165.200.136:8080/ressources",
-    manifestUrl: "http://188.165.200.136:8080/mods/manifest.json",
-  },
-
-  // 🌐 Steam Query (DÉSACTIVÉ - timeout)
-  steamQuery: {
-    enabled: true, // ❌ Port Query 2303 non accessible depuis l'extérieur
-    refreshInterval: 30000,
-    timeout: 12000,
+    folderName: "@Arma",
+    urlMods: "http://localhost:8080/mods",
+    urlRessources: "http://localhost:8080/ressources",
+    manifestUrl: "http://localhost:8080/mods/manifest.json",
   },
 
   // 📰 Configuration des nouvelles (JSON moderne)
   news: {
-    url: "http://82.29.170.30/news/news.json", // ⚠️ Vide = actualités désactivées temporairement
+    url: "http://localhost:8080/news/news.json",
     refreshInterval: 300000, // 5 minutes
   },
 

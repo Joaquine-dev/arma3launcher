@@ -79,42 +79,100 @@ export class ManifestService {
       throw new Error("Impossible de récupérer le manifest serveur");
     }
 
-
     const toDownload: ModFile[] = [];
     const toDelete: string[] = [];
     let totalDownloadSize = 0;
 
+    // Si pas de manifest local, scanner le dossier local pour vérifier les fichiers existants
+    const isFirstRun = !localManifest;
+    if (isFirstRun) {
+      console.log("🔍 Première utilisation : scan du dossier local...");
+    }
+
     // Fichiers à télécharger (nouveaux ou modifiés)
     for (const serverFile of serverManifest.files) {
       const localFile = localManifest?.files.find(f => f.name === serverFile.name);
+      const filePath = path.join(localModsPath, serverFile.name);
+      const fileExists = await fs.pathExists(filePath);
 
-      // Vérification rapide par hash ET lastModified
-      const fileExists = await fs.pathExists(path.join(localModsPath, serverFile.name));
-      const needsDownload = !localFile ||
-        localFile.hash !== serverFile.hash ||
-        localFile.lastModified !== serverFile.lastModified ||
-        !fileExists;
+      let needsDownload = false;
+      let reason = '';
+
+      if (!fileExists) {
+        // Fichier n'existe pas localement
+        needsDownload = true;
+        reason = localFile ? 'fichier manquant' : 'nouveau';
+      } else if (!localFile && isFirstRun) {
+        // Première utilisation : vérifier le fichier existant
+        console.log(`   🔍 Vérification de ${serverFile.name}...`);
+        const stats = await fs.stat(filePath);
+
+        // Vérification rapide par taille d'abord
+        if (stats.size !== serverFile.size) {
+          needsDownload = true;
+          reason = 'taille différente';
+        } else {
+          // Taille OK, vérifier le hash
+          const localHash = await this.calculateFileHash(filePath);
+          if (localHash !== serverFile.hash) {
+            needsDownload = true;
+            reason = 'hash différent';
+          } else {
+            console.log(`   ✅ ${serverFile.name} - déjà à jour`);
+          }
+        }
+      } else if (localFile) {
+        // Manifest local existe : comparaison rapide
+        const hashMismatch = localFile.hash !== serverFile.hash;
+        const dateMismatch = localFile.lastModified !== serverFile.lastModified;
+
+        if (hashMismatch || dateMismatch) {
+          needsDownload = true;
+          reason = hashMismatch ? 'hash différent' : 'modifié';
+        }
+      }
 
       if (needsDownload) {
-        const reason = !localFile ? 'nouveau' :
-          localFile.hash !== serverFile.hash ? 'hash différent' :
-            localFile.lastModified !== serverFile.lastModified ? 'modifié' :
-              !fileExists ? 'fichier manquant' : 'inconnu';
-
         console.log(`   📥 ${serverFile.name} - ${reason}`);
         toDownload.push(serverFile);
         totalDownloadSize += serverFile.size;
       }
     }
 
-    // Fichiers à supprimer (plus sur le serveur)
+    // Fichiers à supprimer (fichiers locaux qui ne sont plus sur le serveur)
     if (localManifest) {
+      // Cas 1: Manifest local existe - supprimer les fichiers dans l'ancien manifest mais pas dans le nouveau
       for (const localFile of localManifest.files) {
         const stillExists = serverManifest.files.find(f => f.name === localFile.name);
         if (!stillExists) {
           console.log(`   🗑️ ${localFile.name} - supprimé du serveur`);
           toDelete.push(localFile.name);
         }
+      }
+    } else {
+      // Cas 2: Première utilisation - scanner le dossier et supprimer ce qui n'est pas dans le manifest serveur
+      try {
+        if (await fs.pathExists(localModsPath)) {
+          const localFiles = await fs.readdir(localModsPath);
+          for (const localFile of localFiles) {
+            // Ignorer les fichiers cachés et le manifest local
+            if (localFile.startsWith('.') || localFile === 'manifest.json') continue;
+
+            const filePath = path.join(localModsPath, localFile);
+            const stats = await fs.stat(filePath);
+
+            // Vérifier seulement les fichiers (pas les dossiers)
+            if (stats.isFile()) {
+              const inServerManifest = serverManifest.files.find(f => f.name === localFile);
+              if (!inServerManifest) {
+                console.log(`   🗑️ ${localFile} - fichier orphelin (pas dans le manifest serveur)`);
+                toDelete.push(localFile);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Erreur lors du scan des fichiers orphelins:", error);
       }
     }
 

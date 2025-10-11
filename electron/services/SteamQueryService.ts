@@ -17,6 +17,9 @@ export class SteamQueryService {
   private lastServerInfo: PublicServerInfo | null = null;
   private lastQueryTime = 0;
   private readonly CACHE_DURATION = 10000; // 10 secondes de cache
+  private consecutiveErrors = 0;
+  private lastErrorLogTime = 0;
+  private readonly ERROR_LOG_INTERVAL = 60000; // Logger les erreurs max 1 fois par minute
 
   /**
    * Implémentation native du protocole Steam Query A2S_INFO
@@ -33,14 +36,18 @@ export class SteamQueryService {
     try {
       const startTime = Date.now();
 
-      const queryPort = (config.server as any).queryPort || config.server.port;
-      const host = `${config.server.ip}:${queryPort}`;
-      console.log(`🔍 Steam Query via lib vers ${host}...`);
+      const queryPort = config.servers[0].queryPort || config.servers[0].port;
+      const host = `${config.servers[0].ip}:${queryPort}`;
+
+      // Logger seulement si pas d'erreurs récentes
+      if (this.consecutiveErrors === 0) {
+        console.log(`🔍 Steam Query vers ${host}...`);
+      }
 
       const info = await queryGameServerInfo(
         host,
         1,
-        (config as any)?.steamQuery?.timeout ?? 3000
+        15000 // Augmenté à 15 secondes
       );
 
       let playerList: string[] = [];
@@ -48,22 +55,22 @@ export class SteamQueryService {
         const players = await queryGameServerPlayer(
           host,
           1,
-          (config as any)?.steamQuery?.timeout ?? 3000
+          15000
         );
         // players: tableau d'objets { name, score, duration }
         playerList = Array.isArray(players) ? players.map((p: any) => p?.name).filter(Boolean) : [];
       } catch (playerError) {
-        console.log('Info: Liste des joueurs non disponible');
+        // Silencieux - liste joueurs optionnelle
       }
 
       const ping = Date.now() - startTime;
 
       const publicInfo: PublicServerInfo = {
         playerCount: (info as any)?.players ?? 0,
-        maxPlayers: (info as any)?.maxPlayers ?? config.server.maxSlots,
-        serverName: (info as any)?.name ?? config.server.name,
-        map: (info as any)?.map ?? config.server.map,
-        gameMode: (info as any)?.game ?? config.server.gameMode,
+        maxPlayers: (info as any)?.maxPlayers ?? config.servers[0].maxSlots,
+        serverName: (info as any)?.name ?? config.servers[0].name,
+        map: (info as any)?.map ?? '',
+        gameMode: (info as any)?.game ?? '',
         ping,
         isOnline: true,
         version: (info as any)?.version ?? 'Unknown',
@@ -73,11 +80,25 @@ export class SteamQueryService {
       this.lastServerInfo = publicInfo;
       this.lastQueryTime = now;
 
-      console.log(`✅ Steam Query: ${publicInfo.playerCount}/${publicInfo.maxPlayers} joueurs, ${ping}ms`);
+      // Logger succès seulement après des erreurs ou périodiquement
+      const wasOffline = this.consecutiveErrors > 0;
+      this.consecutiveErrors = 0; // Reset compteur d'erreurs
+
+      if (wasOffline) {
+        console.log(`✅ Steam Query reconnecté: ${publicInfo.playerCount}/${publicInfo.maxPlayers} joueurs, ${ping}ms`);
+      }
+
       return publicInfo;
 
     } catch (error) {
-      console.error('❌ Erreur Steam Query:', error);
+      this.consecutiveErrors++;
+
+      // Logger l'erreur seulement 1 fois par minute max
+      const shouldLog = (now - this.lastErrorLogTime) > this.ERROR_LOG_INTERVAL;
+      if (shouldLog) {
+        console.warn(`⚠️ Steam Query indisponible (${this.consecutiveErrors} échecs) - Le serveur est peut-être hors ligne ou le port ${config.servers[0].queryPort} n'est pas ouvert`);
+        this.lastErrorLogTime = now;
+      }
 
       // Pas d'infos fantômes - juste indiquer que c'est offline
       const offlineInfo: PublicServerInfo = {
@@ -107,12 +128,12 @@ export class SteamQueryService {
   async pingServer(): Promise<{ online: boolean; ping: number }> {
     try {
       const startTime = Date.now();
-      const queryPort = (config.server as any).queryPort || config.server.port;
-      const host = `${config.server.ip}:${queryPort}`;
+      const queryPort = config.servers[0].queryPort || config.servers[0].port;
+      const host = `${config.servers[0].ip}:${queryPort}`;
       await queryGameServerInfo(
         host,
         1,
-        (config as any)?.steamQuery?.timeout ?? 3000
+        15000
       );
       const ping = Date.now() - startTime;
 
@@ -135,19 +156,19 @@ export class SteamQueryService {
    */
   async getPlayerCount(): Promise<{ count: number; max: number }> {
     try {
-      const queryPort = (config.server as any).queryPort || config.server.port;
-      const host = `${config.server.ip}:${queryPort}`;
+      const queryPort = config.servers[0].queryPort || config.servers[0].port;
+      const host = `${config.servers[0].ip}:${queryPort}`;
       const serverInfo = await queryGameServerInfo(
         host,
         1,
-        (config as any)?.steamQuery?.timeout ?? 3000
+        15000
       );
       return {
         count: (serverInfo as any)?.players ?? 0,
-        max: (serverInfo as any)?.maxPlayers ?? config.server.maxSlots
+        max: (serverInfo as any)?.maxPlayers ?? config.servers[0].maxSlots
       };
     } catch (error) {
-      return { count: 0, max: config.server.maxSlots };
+      return { count: 0, max: config.servers[0].maxSlots };
     }
   }
 }

@@ -1,20 +1,18 @@
 {
   "name": "arma3_launcher",
   "private": false,
-  "version": "1.0.8",
+  "version": "1.0.0",
   "type": "module",
   "description": "Launcher pour Arma 3",
   "author": "Joaquine",
   "productName": "Arma 3 Launcher",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/encrypt-config.js && tsc && vite build && electron-builder && node scripts/encrypt-config.js restore",
+    "build": "tsc && vite build && electron-builder",
     "build:dev": "tsc && vite build && electron-builder",
-    "encrypt-config": "node scripts/encrypt-config.js",
-    "restore-config": "node scripts/encrypt-config.js restore",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "release": "node scripts/encrypt-config.js && tsc && vite build && electron-builder --publish always && node scripts/encrypt-config.js restore"
+    "release": "tsc && vite build && electron-builder --publish always"
   },
   "dependencies": {
     "@emotion/styled": "^11.14.1",

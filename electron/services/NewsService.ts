@@ -54,14 +54,32 @@ export class NewsService {
 
       const newsData = await response.json();
 
+      // Gérer le cas où l'API retourne un tableau ou un objet
+      let items: any[] = [];
+      if (Array.isArray(newsData)) {
+        items = newsData;
+      } else if (newsData.items && Array.isArray(newsData.items)) {
+        items = newsData.items;
+      } else {
+        console.log('Format de données news non reconnu');
+        return null;
+      }
+
+      // Normaliser les items (timestamp -> publishedAt si nécessaire)
+      const normalizedItems = items.map((item: any) => ({
+        ...item,
+        publishedAt: item.publishedAt || item.timestamp || Date.now()
+      }));
+
       // Filtrer les actualités expirées
       const now = Date.now();
-      const validItems = newsData.items.filter((item: NewsItem) =>
+      const validItems = normalizedItems.filter((item: NewsItem) =>
         !item.expiresAt || item.expiresAt > now
       );
 
       return {
-        ...newsData,
+        version: newsData.version || '1.0.0',
+        lastUpdated: newsData.lastUpdated || Date.now(),
         items: validItems
       };
     } catch (error) {

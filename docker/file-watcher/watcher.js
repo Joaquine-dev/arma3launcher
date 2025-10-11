@@ -74,10 +74,7 @@ function setupFileWatcher() {
       /\.DS_Store/,
       /Thumbs\.db/,
       /\.tmp$/,
-      /\.temp$/,
-      /manifest\.json$/,
-      /index\.json$/,
-      /news\.json$/
+      /\.temp$/
     ],
     persistent: true,
     ignoreInitial: true,
