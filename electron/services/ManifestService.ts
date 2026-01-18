@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import path from "node:path";
-import crypto from "node:crypto";
+import { calculateFileSha256 } from "../utils/hashUtils";
 
 export interface ModFile {
   name: string;
@@ -213,13 +213,7 @@ export class ManifestService {
    * Hash rapide avec streaming pour les gros fichiers
    */
   private async calculateFileHash(filePath: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const hash = crypto.createHash('sha256');
-      const stream = fs.createReadStream(filePath, { highWaterMark: 64 * 1024 }); // 64KB chunks
-      stream.on('data', data => hash.update(data));
-      stream.on('end', () => resolve(hash.digest('hex')));
-      stream.on('error', reject);
-    });
+    return calculateFileSha256(filePath);
   }
 }
 
@@ -262,12 +256,5 @@ export async function generateServerManifest(modsDirectory: string): Promise<Ser
 }
 
 async function calculateFileHashFast(filePath: string): Promise<string> {
-  const hash = crypto.createHash('sha256');
-  const stream = fs.createReadStream(filePath, { highWaterMark: 1024 * 1024 }); // 1MB chunks
-
-  return new Promise((resolve, reject) => {
-    stream.on('data', data => hash.update(data));
-    stream.on('end', () => resolve(hash.digest('hex')));
-    stream.on('error', reject);
-  });
+  return calculateFileSha256(filePath, 1024 * 1024); // 1MB chunks
 }

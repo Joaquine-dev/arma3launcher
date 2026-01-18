@@ -251,36 +251,51 @@ export function setupIpcHandlers(win: BrowserWindow) {
       }
 
       const totalSize = delta.totalDownloadSize;
-      let downloadedSize = 0;
+      let totalDownloadedBytes = 0; // Total téléchargé global
       const startTime = Date.now();
       let lastProgressUpdate = 0;
+      const PROGRESS_UPDATE_INTERVAL = 250; // 250ms = 4 updates/sec (plus fluide)
+
+      // Calculer les tailles cumulées pour chaque fichier
+      const fileSizesBefore = new Map<string, number>();
+      let cumulativeSize = 0;
+      for (const file of delta.toDownload) {
+        fileSizesBefore.set(file.name, cumulativeSize);
+        cumulativeSize += file.size;
+      }
 
       // Téléchargement avec progression
       for (const fileToDownload of delta.toDownload) {
         const destination = path.join(addonsPath, fileToDownload.name);
-        let lastBytesForThisFile = 0;
+        const previousFilesSize = fileSizesBefore.get(fileToDownload.name) || 0;
 
         await downloadFileWithResume(
           `${config.mods.urlMods}/${fileToDownload.name}`,
           destination,
           (p) => {
-            const bytesForThisFile = Math.floor((fileToDownload.size || 0) * (p.percent / 100));
-            const deltaBytes = Math.max(0, bytesForThisFile - lastBytesForThisFile);
-            lastBytesForThisFile = bytesForThisFile;
-            downloadedSize = Math.min(totalSize, downloadedSize + deltaBytes);
+            // Calcul précis : bytes des fichiers précédents + bytes actuels du fichier en cours
+            const currentFileBytes = p.downloadedBytes;
+            totalDownloadedBytes = previousFilesSize + currentFileBytes;
 
+            // Métriques de vitesse
             const elapsedTime = (Date.now() - startTime) / 1000;
-            const downloadSpeed = downloadedSize / Math.max(elapsedTime, 0.001);
-            const remainingSize = Math.max(0, totalSize - downloadedSize);
+            const downloadSpeed = totalDownloadedBytes / Math.max(elapsedTime, 0.001);
+            const remainingSize = Math.max(0, totalSize - totalDownloadedBytes);
             const estimatedTimeRemaining = Math.round(remainingSize / Math.max(downloadSpeed, 1));
+
             const minutes = Math.floor(estimatedTimeRemaining / 60);
             const seconds = Math.round(estimatedTimeRemaining % 60);
             const timeRemaining = `${minutes}m ${seconds}s`;
 
-            const globalProgress = totalSize > 0 ? Math.round((downloadedSize / totalSize) * 100) : 0;
-            const fileProgress = Math.round(p.percent);
+            // Progression globale et par fichier
+            const globalProgress = totalSize > 0
+              ? Math.min(100, Math.round((totalDownloadedBytes / totalSize) * 100))
+              : 0;
+            const fileProgress = Math.min(100, Math.round(p.percent));
 
-            if (Date.now() - lastProgressUpdate > 1000) {
+            // Throttling pour ne pas spammer l'UI
+            const now = Date.now();
+            if (now - lastProgressUpdate > PROGRESS_UPDATE_INTERVAL) {
               sendMessage(
                 win,
                 "download-progress",
@@ -290,7 +305,7 @@ export function setupIpcHandlers(win: BrowserWindow) {
                 fileProgress.toString(),
                 timeRemaining
               );
-              lastProgressUpdate = Date.now();
+              lastProgressUpdate = now;
             }
           },
           fileToDownload.hash
@@ -323,14 +338,13 @@ export function setupIpcHandlers(win: BrowserWindow) {
     return arma3Path;
   });
 
-  // Gestionnaire de lancement du jeu
-  ipcMain.handle("launch-game", async () => {
+  // Fonction helper pour lancer Arma 3
+  function launchArma3(connectParams?: string) {
     const arma3Path = store.get("arma3Path") as string | null;
+    if (!arma3Path) return;
 
     const defaultParamsx64 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi_x64 -hugePages -noPause -noPauseAudio";
     const defaultParamsx86 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi -hugePages -noPause -noPauseAudio";
-
-    if (!arma3Path) return;
 
     const is64bit = process.arch === 'x64';
     const exeName = is64bit ? "arma3_x64.exe" : "arma3.exe";
@@ -342,40 +356,28 @@ export function setupIpcHandlers(win: BrowserWindow) {
       return;
     }
 
-    spawn(arma3PathExe, [defaultParams]);
-    sendMessage(win, "launch-game-success", "Jeu lancé avec succès");
+    const finalParams = connectParams ? `${defaultParams} ${connectParams}` : defaultParams;
+    spawn(arma3PathExe, [finalParams]);
+
+    const successMessage = connectParams
+      ? "Jeu lancé — connexion au serveur en cours"
+      : "Jeu lancé avec succès";
+    sendMessage(win, "launch-game-success", successMessage);
 
     setTimeout(() => {
       win.close();
     }, 5000);
+  }
+
+  // Gestionnaire de lancement du jeu
+  ipcMain.handle("launch-game", async () => {
+    launchArma3();
   });
 
   // Connexion directe au serveur (lancement + -connect/-port)
   ipcMain.handle("connect-server", async () => {
-    const arma3Path = store.get("arma3Path") as string | null;
-
-    const defaultParamsx64 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi_x64 -hugePages -noPause -noPauseAudio";
-    const defaultParamsx86 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi -hugePages -noPause -noPauseAudio";
-
-    if (!arma3Path) return;
-
-    const is64bit = process.arch === 'x64';
-    const exeName = is64bit ? "arma3_x64.exe" : "arma3.exe";
-    const defaultParams = is64bit ? defaultParamsx64 : defaultParamsx86;
-    const arma3PathExe = path.join(arma3Path, exeName);
-
-    if (!fs.existsSync(arma3PathExe)) {
-      sendMessage(win, "launch-game-error", undefined, `Impossible de trouver ${exeName}`);
-      return;
-    }
-
     const connectArgs = `-connect=${config.servers[0].ip} -port=${config.servers[0].port}`;
-    spawn(arma3PathExe, [`${defaultParams} ${connectArgs}`]);
-    sendMessage(win, "launch-game-success", "Jeu lancé — connexion au serveur en cours");
-
-    setTimeout(() => {
-      win.close();
-    }, 5000);
+    launchArma3(connectArgs);
   });
 
   // Gestionnaire des actualités

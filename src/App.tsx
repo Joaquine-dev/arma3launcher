@@ -72,11 +72,13 @@ function App() {
       if (message === 'mods-check-complete') {
         setState('ready')
         setModsStatus('synced')
-        // Reset des barres de progression si les mods sont déjà à jour
-        setProgress(0)
-        setFileProgress(0)
-        setFileName('')
-        setEta('')
+        // Ne reset que si on n'est pas en train de télécharger
+        if (state !== 'downloading') {
+          setProgress(0)
+          setFileProgress(0)
+          setFileName('')
+          setEta('')
+        }
 
         if (lastToastMessage !== toastKey) {
           setLastToastMessage(toastKey)
@@ -110,15 +112,20 @@ function App() {
         setEta(String(timeRemaining || ''))
       }
       if (message === 'download-complete') {
+        // Forcer 100% avant de reset
+        setProgress(100)
+        setFileProgress(100)
+
         setState('ready')
         setModsStatus('synced')
+
         // Reset des barres de progression après un délai pour voir la completion
         setTimeout(() => {
           setProgress(0)
           setFileProgress(0)
           setFileName('')
           setEta('')
-        }, 2000) // 2 secondes pour voir 100% puis disparition
+        }, 3000) // 3 secondes pour voir 100% puis disparition
 
         if (lastToastMessage !== toastKey) {
           setLastToastMessage(toastKey)
@@ -601,12 +608,6 @@ function HomeTab({
   modsStatus,
   state,
   selectedServer,
-  //@ts-ignore
-  servers,
-  //@ts-ignore
-  selectedServerId,
-  //@ts-ignore
-  onSelectServer,
   onConnect,
   onRefreshStatus
 }: {
@@ -686,79 +687,33 @@ function HomeTab({
               </span>
             </div>
 
-            {/* Sélecteur de serveur
-
-            {servers.length > 1 && (
-              <div className="mb-6">
-                <div className="text-center mb-4">
-                  <label className="inline-flex items-center gap-2 text-sm text-orange-200/80 font-medium">
-                    <Server className="w-4 h-4" />
-                    Choisissez votre serveur
-                  </label>
-                  <p className="text-xs text-gray-400 mt-1">Sélectionnez le serveur sur lequel vous souhaitez jouer</p>
-                </div>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {servers.map((server, index) => (
-                    <button
-                      key={server.id}
-                      onClick={() => onSelectServer(server.id)}
-                      className={`server-selector ${server.id === selectedServerId
-                        ? 'server-selector-active'
-                        : 'server-selector-inactive'
-                        }`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <span className="server-name text-sm">{server.shortName}</span>
-                      <span className={`server-status ${server.status === 'production' ? 'server-status-production' :
-                        server.status === 'beta' ? 'server-status-beta' :
-                          'server-status-maintenance'
-                        }`}>
-                        {server.status === 'production' ? 'PROD' :
-                          server.status === 'beta' ? 'BETA' : 'MAINT'}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                {/* Indicateur du serveur sélectionné */}
-            <div className="text-center mt-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 border border-orange-500/20 rounded-full">
-                <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                <span className="text-xs text-orange-300 font-medium">
-                  {selectedServer?.name || 'Aucun serveur sélectionné'}
-                </span>
-              </div>
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap justify-center gap-2">
+              {serverStatus === 'online' && modsStatus === 'synced' ? (
+                <button
+                  onClick={onConnect}
+                  className="btn-join hero-cta-primary"
+                >
+                  <Play className="w-5 h-5" />
+                  <span>Rejoindre le serveur</span>
+                </button>
+              ) : (
+                <button
+                  onClick={onRefreshStatus}
+                  className="btn-join hero-cta-primary"
+                >
+                  <Clock className={`w-5 h-5 ${state === 'checking' ? 'animate-spin' : 'animate-pulse'}`} />
+                  <span>{state === 'checking' ? 'Vérification...' : 'Actualiser le statut'}</span>
+                </button>
+              )}
             </div>
-          </div>
 
-
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {serverStatus === 'online' && modsStatus === 'synced' ? (
-              <button
-                onClick={onConnect}
-                className="btn-join hero-cta-primary"
-              >
-                <Play className="w-5 h-5" />
-                <span>Rejoindre le serveur</span>
-              </button>
-            ) : (
-              <button
-                onClick={onRefreshStatus}
-                className="btn-join hero-cta-primary"
-              >
-                <Clock className={`w-5 h-5 ${state === 'checking' ? 'animate-spin' : 'animate-pulse'}`} />
-                <span>{state === 'checking' ? 'Vérification...' : 'Actualiser le statut'}</span>
-              </button>
-            )}
-
-            {/* Bouton Site Web déplacé pour ne pas être à côté de "Rejoindre le serveur" */}
-          </div>
-
-          {/* Info supplémentaire */}
-          <div className="text-center mt-4 pt-3 border-t border-orange-600/20">
-            <p className="text-xs text-gray-400 max-w-xl mx-auto">
-              <span className="font-medium text-orange-300">90% contenu original</span> • Semi‑RP authentique
-            </p>
+            {/* Info supplémentaire */}
+            <div className="text-center mt-4 pt-3 border-t border-orange-600/20">
+              <p className="text-xs text-gray-400 max-w-xl mx-auto">
+                <span className="font-medium text-orange-300">90% contenu original</span> • Semi‑RP authentique
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -893,7 +848,6 @@ function ServersTab({
   modsStatus: 'synced' | 'outdated' | 'downloading'
   onConnect: () => void
 }) {
-  // const selectedServer = servers.find(s => s.id === selectedServerId) || servers[0]
 
   const getServerStatusColor = (status: string) => {
     switch (status) {
@@ -1108,18 +1062,25 @@ function ModsTab({ state, progress, fileProgress, fileName, eta, modsStatus, onD
               </div>
 
               {fileName && (
-                <div className="space-y-2 p-3 rounded bg-gray-800/50 border border-gray-700/50">
+                <div className="space-y-2 p-3 rounded bg-gray-800/50 border border-gray-700/50 animate-in">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-300 truncate">{fileName}</span>
-                    <span className="text-gray-200">{fileProgress}%</span>
+                    <span className="text-gray-300 truncate flex-1 mr-2" title={fileName}>
+                      📦 {fileName}
+                    </span>
+                    <span className="text-gray-200 font-mono tabular-nums">{fileProgress}%</span>
                   </div>
                   <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-400 rounded-full transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-200 ease-linear"
                       style={{ width: `${fileProgress}%` }}
                     />
                   </div>
-                  {eta && <div className="text-xs text-gray-400">Temps restant: {eta}</div>}
+                  {eta && (
+                    <div className="flex justify-between items-center text-xs text-gray-400">
+                      <span>Temps restant</span>
+                      <span className="font-mono tabular-nums">⏱️ {eta}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1237,11 +1198,9 @@ function LinksTab() {
 }
 
 // Composant Onglet Paramètres
-//@ts-ignore
-function SettingsTab({ arma3Path, onLocate, onLaunch, state }: {
+function SettingsTab({ arma3Path, onLocate, state }: {
   arma3Path: string | null
   onLocate: () => void
-  onLaunch: () => void
   state: LauncherState
 }) {
   return (

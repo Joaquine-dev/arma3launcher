@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import crypto from "node:crypto";
+import { calculateFileSha256 } from "../utils/hashUtils";
 
 export type ProgressInfo = {
   downloadedBytes: number;
@@ -9,16 +9,6 @@ export type ProgressInfo = {
   percent: number;
   fileName?: string;
 };
-
-export async function calculateFileSha256(filePath: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash("sha256");
-    const stream = fs.createReadStream(filePath);
-    stream.on("data", (data) => hash.update(data));
-    stream.on("end", () => resolve(hash.digest("hex")));
-    stream.on("error", reject);
-  });
-}
 
 export async function downloadFileWithResume(
   url: string,
@@ -32,6 +22,8 @@ export async function downloadFileWithResume(
   await fs.ensureDir(path.dirname(destinationPath));
 
   let attempt = 0;
+  let lastError: Error | null = null;
+
   // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
@@ -42,11 +34,12 @@ export async function downloadFileWithResume(
       const headers: Record<string, string> = {};
       if (existingSize > 0) {
         headers["Range"] = `bytes=${existingSize}-`;
+        console.log(`📥 Reprise du téléchargement à ${existingSize} bytes`);
       }
 
       const response = await fetch(url, { headers });
       if (!response.ok && response.status !== 206) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const isPartial = response.status === 206;
@@ -85,70 +78,35 @@ export async function downloadFileWithResume(
         const computed = await calculateFileSha256(tempPath);
         if (computed.toLowerCase() !== expectedSha256.toLowerCase()) {
           // Mauvais hash, on supprime le fichier partiel et on relance
+          console.warn(`⚠️ Hash mismatch pour ${path.basename(destinationPath)}, nouvelle tentative...`);
           await fs.remove(tempPath);
           throw new Error("SHA256 mismatch");
         }
       }
 
       await fs.move(tempPath, destinationPath, { overwrite: true });
+      console.log(`✅ Téléchargé: ${path.basename(destinationPath)}`);
       return;
     } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
       attempt += 1;
+
       if (attempt >= maxRetries) {
-        throw err;
+        console.error(`❌ Échec après ${maxRetries} tentatives: ${lastError.message}`);
+        // Nettoyer le fichier partiel en cas d'échec définitif
+        if (await fs.pathExists(tempPath)) {
+          await fs.remove(tempPath);
+        }
+        throw new Error(`Échec du téléchargement de ${path.basename(destinationPath)}: ${lastError.message}`);
       }
-      // backoff
-      await delay(500 * attempt);
+
+      // Backoff exponentiel avec jitter
+      const backoffTime = 500 * attempt + Math.random() * 500;
+      console.warn(`⚠️ Tentative ${attempt}/${maxRetries} échouée, nouvelle tentative dans ${Math.round(backoffTime)}ms...`);
+      await delay(backoffTime);
     }
   }
 }
 
-export async function downloadManyFiles(
-  files: Array<{ url: string; destinationPath: string; hash?: string; name?: string; size?: number }>,
-  onFileProgress?: (file: string, p: ProgressInfo) => void,
-  onGlobalProgress?: (p: ProgressInfo) => void,
-  concurrency = 2
-) {
-  let totalBytes = 0;
-  let downloadedBytes = 0;
-
-  for (const f of files) {
-    if (typeof f.size === "number" && f.size > 0) totalBytes += f.size;
-  }
-
-  const queue = [...files];
-  const workers: Promise<void>[] = [];
-
-  async function worker() {
-    while (queue.length > 0) {
-      const file = queue.shift();
-      if (!file) break;
-      const { url, destinationPath, hash, name } = file;
-      await downloadFileWithResume(
-        url,
-        destinationPath,
-        (p) => {
-          if (onFileProgress) onFileProgress(name || path.basename(destinationPath), p);
-          if (totalBytes > 0) {
-            // Approx global progress from known sizes
-            downloadedBytes = Math.min(totalBytes, downloadedBytes + (p.downloadedBytes - (p.totalBytes * (p.percent / 100 - 1))));
-            if (onGlobalProgress) {
-              onGlobalProgress({
-                downloadedBytes,
-                totalBytes,
-                percent: Math.max(0, Math.min(100, (downloadedBytes / totalBytes) * 100)),
-              });
-            }
-          }
-        },
-        hash
-      );
-    }
-  }
-
-  for (let i = 0; i < concurrency; i++) {
-    workers.push(worker());
-  }
-
-  await Promise.all(workers);
-}
+// Note: Fonction downloadManyFiles supprimée car jamais utilisée
+// La logique de téléchargement séquentiel dans ipcHandler.ts est plus robuste

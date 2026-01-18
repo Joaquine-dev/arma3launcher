@@ -28945,7 +28945,7 @@ const config = {
   servers: [
     {
       id: "1",
-      name: "Arma 3 Roleplay Server",
+      name: "UnrealLife",
       ip: "91.134.62.7",
       port: 2302,
       queryPort: 2303,
@@ -28955,13 +28955,13 @@ const config = {
   ],
   mods: {
     folderName: "@Arma",
-    urlMods: "http://localhost:8080/mods",
-    urlRessources: "http://localhost:8080/ressources",
-    manifestUrl: "http://localhost:8080/mods/manifest.json"
+    urlMods: "http://188.165.227.197:8080/mods",
+    urlRessources: "http://188.165.227.197:8080/ressources",
+    manifestUrl: "http://188.165.227.197:8080/mods/manifest.json"
   },
   // 📰 Configuration des nouvelles (JSON moderne)
   news: {
-    url: "http://localhost:8080/news/news.json",
+    url: "http://188.165.227.197:8080/news/news.json",
     refreshInterval: 3e5
     // 5 minutes
   },
@@ -28970,42 +28970,36 @@ const config = {
     principal: [
       {
         title: "Site Web Officiel",
-        description: "Accédez au site web principal du serveur",
-        url: "https://Arma.com",
+        description: "Accédez au site web du serveur",
+        url: "https://unreallife.fr/",
         icon: "🌐"
       },
       {
-        title: "Forum Communauté",
-        description: "Discussions et annonces officielles",
-        url: "https://forum.Arma.com",
-        icon: "💬"
+        title: "Intranet",
+        description: "Gérer votre compte et vos informations",
+        url: "https://intranet.unreallife.fr/",
+        icon: "🌐"
       }
     ],
     communaute: [
       {
         title: "Discord",
         description: "Rejoignez notre serveur Discord",
-        url: "https://discord.gg/Arma",
+        url: "https://discord.gg/SRMgZRPrqg",
         icon: "💬"
-      },
-      {
-        title: "Steam Group",
-        description: "Groupe Steam de la communauté",
-        url: "https://steamcommunity.com/groups/Arma",
-        icon: "🎮"
       }
     ],
     communication: [
       {
         title: "TeamSpeak 3",
         description: "Serveur vocal pour la communication en jeu",
-        url: "ts3server://ts.Arma.com",
+        url: "ts3server://ts3.unreallife.fr",
         icon: "🎤"
       },
       {
         title: "Guide TFAR",
         description: "Guide d'utilisation de Task Force Arrowhead Radio",
-        url: "https://Arma.com/guide-tfar",
+        url: "https://discord.com/channels/791056321596227595/1410997569877839956",
         icon: "📡"
       }
     ],
@@ -29013,27 +29007,21 @@ const config = {
       {
         title: "Règlement",
         description: "Règles et conditions d'utilisation du serveur",
-        url: "https://Arma.com/reglement",
+        url: "https://discord.com/channels/791056321596227595/1427012155504464054",
         icon: "📋"
-      },
-      {
-        title: "Guide Débutant",
-        description: "Guide pour bien commencer sur le serveur",
-        url: "https://Arma.com/guide",
-        icon: "📖"
       }
     ],
     support: [
       {
         title: "Ticket Support",
         description: "Créer un ticket de support",
-        url: "https://Arma.com/support",
+        url: "https://discord.com/channels/791056321596227595/1299421761644793917",
         icon: "🎫"
       },
       {
         title: "FAQ",
         description: "Questions fréquemment posées",
-        url: "https://Arma.com/faq",
+        url: "https://discord.com/channels/791056321596227595/791361882870513674",
         icon: "❓"
       }
     ]
@@ -29061,10 +29049,10 @@ const config = {
     animationDuration: 300
   }
 };
-async function calculateFileSha256(filePath) {
+async function calculateFileSha256(filePath, highWaterMark = 64 * 1024) {
   return new Promise((resolve2, reject) => {
     const hash = crypto.createHash("sha256");
-    const stream = fs.createReadStream(filePath);
+    const stream = fs.createReadStream(filePath, { highWaterMark });
     stream.on("data", (data) => hash.update(data));
     stream.on("end", () => resolve2(hash.digest("hex")));
     stream.on("error", reject);
@@ -29075,16 +29063,18 @@ async function downloadFileWithResume(url, destinationPath, onProgress, expected
   const tempPath = `${destinationPath}.partial`;
   await fs.ensureDir(path$z.dirname(destinationPath));
   let attempt = 0;
+  let lastError = null;
   while (true) {
     try {
       const existingSize = await fs.pathExists(tempPath) ? (await fs.stat(tempPath)).size : 0;
       const headers = {};
       if (existingSize > 0) {
         headers["Range"] = `bytes=${existingSize}-`;
+        console.log(`📥 Reprise du téléchargement à ${existingSize} bytes`);
       }
       const response = await fetch(url, { headers });
       if (!response.ok && response.status !== 206) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const isPartial = response.status === 206;
       const contentLengthHeader = response.headers.get("content-length") || "0";
@@ -29116,18 +29106,27 @@ async function downloadFileWithResume(url, destinationPath, onProgress, expected
       if (expectedSha256) {
         const computed = await calculateFileSha256(tempPath);
         if (computed.toLowerCase() !== expectedSha256.toLowerCase()) {
+          console.warn(`⚠️ Hash mismatch pour ${path$z.basename(destinationPath)}, nouvelle tentative...`);
           await fs.remove(tempPath);
           throw new Error("SHA256 mismatch");
         }
       }
       await fs.move(tempPath, destinationPath, { overwrite: true });
+      console.log(`✅ Téléchargé: ${path$z.basename(destinationPath)}`);
       return;
     } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
       attempt += 1;
       if (attempt >= maxRetries) {
-        throw err;
+        console.error(`❌ Échec après ${maxRetries} tentatives: ${lastError.message}`);
+        if (await fs.pathExists(tempPath)) {
+          await fs.remove(tempPath);
+        }
+        throw new Error(`Échec du téléchargement de ${path$z.basename(destinationPath)}: ${lastError.message}`);
       }
-      await setTimeout$1(500 * attempt);
+      const backoffTime = 500 * attempt + Math.random() * 500;
+      console.warn(`⚠️ Tentative ${attempt}/${maxRetries} échouée, nouvelle tentative dans ${Math.round(backoffTime)}ms...`);
+      await setTimeout$1(backoffTime);
     }
   }
 }
@@ -29280,13 +29279,7 @@ class ManifestService {
    * Hash rapide avec streaming pour les gros fichiers
    */
   async calculateFileHash(filePath) {
-    return new Promise((resolve2, reject) => {
-      const hash = crypto.createHash("sha256");
-      const stream = fs.createReadStream(filePath, { highWaterMark: 64 * 1024 });
-      stream.on("data", (data) => hash.update(data));
-      stream.on("end", () => resolve2(hash.digest("hex")));
-      stream.on("error", reject);
-    });
+    return calculateFileSha256(filePath);
   }
 }
 class NewsService {
@@ -30172,30 +30165,36 @@ function setupIpcHandlers(win2) {
         return;
       }
       const totalSize = delta.totalDownloadSize;
-      let downloadedSize = 0;
+      let totalDownloadedBytes = 0;
       const startTime = Date.now();
       let lastProgressUpdate = 0;
+      const PROGRESS_UPDATE_INTERVAL = 250;
+      const fileSizesBefore = /* @__PURE__ */ new Map();
+      let cumulativeSize = 0;
+      for (const file2 of delta.toDownload) {
+        fileSizesBefore.set(file2.name, cumulativeSize);
+        cumulativeSize += file2.size;
+      }
       for (const fileToDownload of delta.toDownload) {
         const destination = path$z.join(addonsPath, fileToDownload.name);
-        let lastBytesForThisFile = 0;
+        const previousFilesSize = fileSizesBefore.get(fileToDownload.name) || 0;
         await downloadFileWithResume(
           `${config.mods.urlMods}/${fileToDownload.name}`,
           destination,
           (p) => {
-            const bytesForThisFile = Math.floor((fileToDownload.size || 0) * (p.percent / 100));
-            const deltaBytes = Math.max(0, bytesForThisFile - lastBytesForThisFile);
-            lastBytesForThisFile = bytesForThisFile;
-            downloadedSize = Math.min(totalSize, downloadedSize + deltaBytes);
+            const currentFileBytes = p.downloadedBytes;
+            totalDownloadedBytes = previousFilesSize + currentFileBytes;
             const elapsedTime = (Date.now() - startTime) / 1e3;
-            const downloadSpeed = downloadedSize / Math.max(elapsedTime, 1e-3);
-            const remainingSize = Math.max(0, totalSize - downloadedSize);
+            const downloadSpeed = totalDownloadedBytes / Math.max(elapsedTime, 1e-3);
+            const remainingSize = Math.max(0, totalSize - totalDownloadedBytes);
             const estimatedTimeRemaining = Math.round(remainingSize / Math.max(downloadSpeed, 1));
             const minutes = Math.floor(estimatedTimeRemaining / 60);
             const seconds = Math.round(estimatedTimeRemaining % 60);
             const timeRemaining = `${minutes}m ${seconds}s`;
-            const globalProgress = totalSize > 0 ? Math.round(downloadedSize / totalSize * 100) : 0;
-            const fileProgress = Math.round(p.percent);
-            if (Date.now() - lastProgressUpdate > 1e3) {
+            const globalProgress = totalSize > 0 ? Math.min(100, Math.round(totalDownloadedBytes / totalSize * 100)) : 0;
+            const fileProgress = Math.min(100, Math.round(p.percent));
+            const now = Date.now();
+            if (now - lastProgressUpdate > PROGRESS_UPDATE_INTERVAL) {
               sendMessage(
                 win2,
                 "download-progress",
@@ -30205,7 +30204,7 @@ function setupIpcHandlers(win2) {
                 fileProgress.toString(),
                 timeRemaining
               );
-              lastProgressUpdate = Date.now();
+              lastProgressUpdate = now;
             }
           },
           fileToDownload.hash
@@ -30232,11 +30231,11 @@ function setupIpcHandlers(win2) {
     if (!arma3Path) return null;
     return arma3Path;
   });
-  ipcMain$1.handle("launch-game", async () => {
+  function launchArma3(connectParams) {
     const arma3Path = store.get("arma3Path");
+    if (!arma3Path) return;
     const defaultParamsx64 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi_x64 -hugePages -noPause -noPauseAudio";
     const defaultParamsx86 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi -hugePages -noPause -noPauseAudio";
-    if (!arma3Path) return;
     const is64bit = process.arch === "x64";
     const exeName = is64bit ? "arma3_x64.exe" : "arma3.exe";
     const defaultParams = is64bit ? defaultParamsx64 : defaultParamsx86;
@@ -30245,31 +30244,20 @@ function setupIpcHandlers(win2) {
       sendMessage(win2, "launch-game-error", void 0, `Impossible de trouver ${exeName}`);
       return;
     }
-    spawn$1(arma3PathExe, [defaultParams]);
-    sendMessage(win2, "launch-game-success", "Jeu lancé avec succès");
+    const finalParams = connectParams ? `${defaultParams} ${connectParams}` : defaultParams;
+    spawn$1(arma3PathExe, [finalParams]);
+    const successMessage = connectParams ? "Jeu lancé — connexion au serveur en cours" : "Jeu lancé avec succès";
+    sendMessage(win2, "launch-game-success", successMessage);
     setTimeout(() => {
       win2.close();
     }, 5e3);
+  }
+  ipcMain$1.handle("launch-game", async () => {
+    launchArma3();
   });
   ipcMain$1.handle("connect-server", async () => {
-    const arma3Path = store.get("arma3Path");
-    const defaultParamsx64 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi_x64 -hugePages -noPause -noPauseAudio";
-    const defaultParamsx86 = "-skipIntro -noSplash -enableHT -malloc=jemalloc_bi -hugePages -noPause -noPauseAudio";
-    if (!arma3Path) return;
-    const is64bit = process.arch === "x64";
-    const exeName = is64bit ? "arma3_x64.exe" : "arma3.exe";
-    const defaultParams = is64bit ? defaultParamsx64 : defaultParamsx86;
-    const arma3PathExe = path$z.join(arma3Path, exeName);
-    if (!fs.existsSync(arma3PathExe)) {
-      sendMessage(win2, "launch-game-error", void 0, `Impossible de trouver ${exeName}`);
-      return;
-    }
     const connectArgs = `-connect=${config.servers[0].ip} -port=${config.servers[0].port}`;
-    spawn$1(arma3PathExe, [`${defaultParams} ${connectArgs}`]);
-    sendMessage(win2, "launch-game-success", "Jeu lancé — connexion au serveur en cours");
-    setTimeout(() => {
-      win2.close();
-    }, 5e3);
+    launchArma3(connectArgs);
   });
   ipcMain$1.handle("get-news", async () => {
     if (!newsService) return [];
