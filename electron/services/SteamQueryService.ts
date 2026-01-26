@@ -16,7 +16,7 @@ export interface PublicServerInfo {
 export class SteamQueryService {
   private lastServerInfo: PublicServerInfo | null = null;
   private lastQueryTime = 0;
-  private readonly CACHE_DURATION = 10000; // 10 secondes de cache
+  private readonly CACHE_DURATION = 60000; // 60 secondes de cache (optimisé)
   private consecutiveErrors = 0;
   private lastErrorLogTime = 0;
   private readonly ERROR_LOG_INTERVAL = 60000; // Logger les erreurs max 1 fois par minute

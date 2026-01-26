@@ -10,6 +10,23 @@ export type ProgressInfo = {
   fileName?: string;
 };
 
+export type FileToDownload = {
+  name: string;
+  url: string;
+  destination: string;
+  size: number;
+  hash?: string;
+};
+
+export type ParallelProgressInfo = {
+  totalProgress: number;
+  currentFile: string;
+  fileProgress: number;
+  downloadedBytes: number;
+  totalBytes: number;
+  timeRemaining: string;
+};
+
 export async function downloadFileWithResume(
   url: string,
   destinationPath: string,
@@ -108,5 +125,109 @@ export async function downloadFileWithResume(
   }
 }
 
-// Note: Fonction downloadManyFiles supprimée car jamais utilisée
-// La logique de téléchargement séquentiel dans ipcHandler.ts est plus robuste
+/**
+ * Télécharge plusieurs fichiers en parallèle avec un pool de workers
+ * Version simplifiée et robuste
+ * @param files Liste des fichiers à télécharger
+ * @param concurrency Nombre de téléchargements simultanés (défaut: 3)
+ * @param onProgress Callback de progression globale
+ */
+export async function downloadFilesInParallel(
+  files: FileToDownload[],
+  concurrency: number = 3,
+  onProgress?: (info: ParallelProgressInfo) => void
+): Promise<void> {
+  if (files.length === 0) return;
+
+  const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+  const startTime = Date.now();
+
+  // État partagé pour le suivi de progression
+  let completedBytes = 0;
+  let completedFiles = 0;
+  const activeDownloads = new Map<string, number>();
+
+  const updateProgress = (currentFileName: string) => {
+    if (!onProgress) return;
+
+    // Calculer le total téléchargé
+    let totalDownloaded = completedBytes;
+    for (const bytes of activeDownloads.values()) {
+      totalDownloaded += bytes;
+    }
+
+    const elapsedTime = (Date.now() - startTime) / 1000;
+    const downloadSpeed = totalDownloaded / Math.max(elapsedTime, 0.001);
+    const remainingSize = Math.max(0, totalBytes - totalDownloaded);
+    const estimatedTimeRemaining = Math.round(remainingSize / Math.max(downloadSpeed, 1));
+
+    const minutes = Math.floor(estimatedTimeRemaining / 60);
+    const seconds = Math.round(estimatedTimeRemaining % 60);
+    const timeRemaining = `${minutes}m ${seconds}s`;
+
+    const totalProgress = totalBytes > 0
+      ? Math.min(100, Math.round((totalDownloaded / totalBytes) * 100))
+      : 0;
+
+    const fileBytes = activeDownloads.get(currentFileName) || 0;
+    const fileInfo = files.find(f => f.name === currentFileName);
+    const fileProgress = fileInfo && fileInfo.size > 0
+      ? Math.min(100, Math.round((fileBytes / fileInfo.size) * 100))
+      : 0;
+
+    onProgress({
+      totalProgress,
+      currentFile: currentFileName,
+      fileProgress,
+      downloadedBytes: totalDownloaded,
+      totalBytes,
+      timeRemaining,
+    });
+  };
+
+  // Créer une fonction worker qui télécharge un fichier
+  const downloadOne = async (file: FileToDownload): Promise<void> => {
+    activeDownloads.set(file.name, 0);
+
+    try {
+      await downloadFileWithResume(
+        file.url,
+        file.destination,
+        (p) => {
+          activeDownloads.set(file.name, p.downloadedBytes);
+          updateProgress(file.name);
+        },
+        file.hash
+      );
+
+      // Fichier complété
+      completedBytes += file.size;
+      completedFiles++;
+      activeDownloads.delete(file.name);
+      updateProgress(file.name);
+    } catch (error) {
+      activeDownloads.delete(file.name);
+      throw error;
+    }
+  };
+
+  // Utiliser un pool simple avec Promise.all par lots
+  const errors: Error[] = [];
+
+  for (let i = 0; i < files.length; i += concurrency) {
+    const batch = files.slice(i, i + concurrency);
+    const results = await Promise.allSettled(batch.map(f => downloadOne(f)));
+
+    // Collecter les erreurs
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        errors.push(result.reason instanceof Error ? result.reason : new Error(String(result.reason)));
+      }
+    }
+  }
+
+  // Vérifier les erreurs
+  if (errors.length > 0) {
+    throw new Error(`${errors.length} fichier(s) ont échoué: ${errors.map(e => e.message).join(', ')}`);
+  }
+}

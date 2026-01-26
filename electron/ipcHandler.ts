@@ -6,7 +6,7 @@ import path from "node:path";
 import { config } from "../src/config/config";
 import { spawn } from "child_process";
 
-import { downloadFileWithResume } from "./services/ModDownloadService";
+import { downloadFileWithResume, downloadFilesInParallel, FileToDownload } from "./services/ModDownloadService";
 import { ManifestService } from "./services/ManifestService";
 import { NewsService } from "./services/NewsService";
 import { SteamQueryService } from "./services/SteamQueryService";
@@ -250,67 +250,39 @@ export function setupIpcHandlers(win: BrowserWindow) {
         return;
       }
 
-      const totalSize = delta.totalDownloadSize;
-      let totalDownloadedBytes = 0; // Total téléchargé global
-      const startTime = Date.now();
+      // Préparer la liste des fichiers à télécharger
+      const filesToDownload: FileToDownload[] = delta.toDownload.map(file => ({
+        name: file.name,
+        url: `${config.mods.urlMods}/${file.name}`,
+        destination: path.join(addonsPath, file.name),
+        size: file.size,
+        hash: file.hash,
+      }));
+
+      // Téléchargement PARALLÈLE avec progression (3x plus rapide)
+      const concurrency = config.performance?.concurrentDownloads || 3;
       let lastProgressUpdate = 0;
-      const PROGRESS_UPDATE_INTERVAL = 250; // 250ms = 4 updates/sec (plus fluide)
+      const PROGRESS_UPDATE_INTERVAL = 250; // 250ms = 4 updates/sec
 
-      // Calculer les tailles cumulées pour chaque fichier
-      const fileSizesBefore = new Map<string, number>();
-      let cumulativeSize = 0;
-      for (const file of delta.toDownload) {
-        fileSizesBefore.set(file.name, cumulativeSize);
-        cumulativeSize += file.size;
-      }
-
-      // Téléchargement avec progression
-      for (const fileToDownload of delta.toDownload) {
-        const destination = path.join(addonsPath, fileToDownload.name);
-        const previousFilesSize = fileSizesBefore.get(fileToDownload.name) || 0;
-
-        await downloadFileWithResume(
-          `${config.mods.urlMods}/${fileToDownload.name}`,
-          destination,
-          (p) => {
-            // Calcul précis : bytes des fichiers précédents + bytes actuels du fichier en cours
-            const currentFileBytes = p.downloadedBytes;
-            totalDownloadedBytes = previousFilesSize + currentFileBytes;
-
-            // Métriques de vitesse
-            const elapsedTime = (Date.now() - startTime) / 1000;
-            const downloadSpeed = totalDownloadedBytes / Math.max(elapsedTime, 0.001);
-            const remainingSize = Math.max(0, totalSize - totalDownloadedBytes);
-            const estimatedTimeRemaining = Math.round(remainingSize / Math.max(downloadSpeed, 1));
-
-            const minutes = Math.floor(estimatedTimeRemaining / 60);
-            const seconds = Math.round(estimatedTimeRemaining % 60);
-            const timeRemaining = `${minutes}m ${seconds}s`;
-
-            // Progression globale et par fichier
-            const globalProgress = totalSize > 0
-              ? Math.min(100, Math.round((totalDownloadedBytes / totalSize) * 100))
-              : 0;
-            const fileProgress = Math.min(100, Math.round(p.percent));
-
-            // Throttling pour ne pas spammer l'UI
-            const now = Date.now();
-            if (now - lastProgressUpdate > PROGRESS_UPDATE_INTERVAL) {
-              sendMessage(
-                win,
-                "download-progress",
-                globalProgress.toString(),
-                undefined,
-                fileToDownload.name,
-                fileProgress.toString(),
-                timeRemaining
-              );
-              lastProgressUpdate = now;
-            }
-          },
-          fileToDownload.hash
-        );
-      }
+      await downloadFilesInParallel(
+        filesToDownload,
+        concurrency,
+        (progress) => {
+          const now = Date.now();
+          if (now - lastProgressUpdate > PROGRESS_UPDATE_INTERVAL) {
+            sendMessage(
+              win,
+              "download-progress",
+              progress.totalProgress.toString(),
+              undefined,
+              progress.currentFile,
+              progress.fileProgress.toString(),
+              progress.timeRemaining
+            );
+            lastProgressUpdate = now;
+          }
+        }
+      );
 
       // Sauvegarder le nouveau manifest local
       const serverManifest = await manifestService.fetchServerManifest();

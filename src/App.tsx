@@ -1,151 +1,288 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useCallback, useReducer, useMemo, memo } from 'react'
 import { Folder, Download, Play, Settings, AlertCircle, CheckCircle, Clock, Target, Radio, Monitor, X, Minimize, Server, ExternalLink } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import { config } from './config/config'
 
 type LauncherState = 'idle' | 'locating' | 'downloading' | 'launching' | 'ready' | 'checking'
 type TabType = 'home' | 'news' | 'servers' | 'mods' | 'links' | 'settings'
+type ModsStatus = 'synced' | 'outdated' | 'downloading'
+type ServerStatus = 'online' | 'offline'
+
+// État centralisé de l'application
+interface AppState {
+  // État général
+  launcherState: LauncherState
+  activeTab: TabType
+  arma3Path: string | null
+
+  // Progression téléchargement
+  progress: number
+  fileProgress: number
+  fileName: string
+  eta: string
+  modsStatus: ModsStatus
+  modsChecked: boolean // Vérification initiale terminée
+
+  // Infos serveur
+  playerCount: number
+  maxPlayers: number
+  serverStatus: ServerStatus
+  serverName: string
+  serverMap: string
+  serverPing: number
+  serverFps: number
+  serverUptime: string
+  hasRconData: boolean
+
+  // News
+  news: any[]
+  criticalNews: any[]
+
+  // Multi-serveurs
+  selectedServerId: string
+
+  // Auto-update
+  updateVisible: boolean
+  updateMessage: string
+  updatePercent: number
+  updateSpeed: number
+  updateTransferred: number
+  updateTotal: number
+
+  // Toast dedup
+  lastToastMessage: string
+}
+
+// Actions du reducer
+type AppAction =
+  | { type: 'SET_LAUNCHER_STATE'; payload: LauncherState }
+  | { type: 'SET_ACTIVE_TAB'; payload: TabType }
+  | { type: 'SET_ARMA3_PATH'; payload: string | null }
+  | { type: 'SET_DOWNLOAD_PROGRESS'; payload: { progress: number; fileProgress: number; fileName: string; eta: string } }
+  | { type: 'RESET_DOWNLOAD_PROGRESS' }
+  | { type: 'SET_MODS_STATUS'; payload: ModsStatus }
+  | { type: 'SET_MODS_CHECKED'; payload: boolean }
+  | { type: 'SET_SERVER_INFO'; payload: Partial<Pick<AppState, 'playerCount' | 'maxPlayers' | 'serverStatus' | 'serverName' | 'serverMap' | 'serverPing' | 'serverFps' | 'serverUptime' | 'hasRconData'>> }
+  | { type: 'SET_SERVER_OFFLINE' }
+  | { type: 'SET_NEWS'; payload: any[] }
+  | { type: 'SET_CRITICAL_NEWS'; payload: any[] }
+  | { type: 'SET_SELECTED_SERVER'; payload: string }
+  | { type: 'SET_UPDATE_INFO'; payload: Partial<Pick<AppState, 'updateVisible' | 'updateMessage' | 'updatePercent' | 'updateSpeed' | 'updateTransferred' | 'updateTotal'>> }
+  | { type: 'HIDE_UPDATE' }
+  | { type: 'SET_LAST_TOAST'; payload: string }
+  | { type: 'DOWNLOAD_COMPLETE' }
+
+// État initial
+const initialState: AppState = {
+  launcherState: 'checking', // Commence en vérification
+  activeTab: 'home',
+  arma3Path: null,
+  progress: 0,
+  fileProgress: 0,
+  fileName: '',
+  eta: '',
+  modsStatus: 'synced',
+  modsChecked: false, // Vérification pas encore faite
+  playerCount: 0,
+  maxPlayers: config.servers[0].maxSlots,
+  serverStatus: 'offline',
+  serverName: config.servers[0].name,
+  serverMap: '',
+  serverPing: 0,
+  serverFps: 0,
+  serverUptime: '0:00:00',
+  hasRconData: false,
+  news: [],
+  criticalNews: [],
+  selectedServerId: config.servers.find(s => s.isDefault)?.id || config.servers[0]?.id || '',
+  updateVisible: false,
+  updateMessage: '',
+  updatePercent: 0,
+  updateSpeed: 0,
+  updateTransferred: 0,
+  updateTotal: 0,
+  lastToastMessage: '',
+}
+
+// Reducer centralisé
+function appReducer(state: AppState, action: AppAction): AppState {
+  switch (action.type) {
+    case 'SET_LAUNCHER_STATE':
+      return { ...state, launcherState: action.payload }
+    case 'SET_ACTIVE_TAB':
+      return { ...state, activeTab: action.payload }
+    case 'SET_ARMA3_PATH':
+      return { ...state, arma3Path: action.payload }
+    case 'SET_DOWNLOAD_PROGRESS':
+      return {
+        ...state,
+        progress: action.payload.progress,
+        fileProgress: action.payload.fileProgress,
+        fileName: action.payload.fileName,
+        eta: action.payload.eta
+      }
+    case 'RESET_DOWNLOAD_PROGRESS':
+      return { ...state, progress: 0, fileProgress: 0, fileName: '', eta: '' }
+    case 'SET_MODS_STATUS':
+      return { ...state, modsStatus: action.payload }
+    case 'SET_MODS_CHECKED':
+      return { ...state, modsChecked: action.payload }
+    case 'SET_SERVER_INFO':
+      return { ...state, ...action.payload }
+    case 'SET_SERVER_OFFLINE':
+      return {
+        ...state,
+        hasRconData: false,
+        serverStatus: 'offline',
+        playerCount: 0,
+        serverPing: 0,
+        serverFps: 0,
+        serverUptime: '0:00:00'
+      }
+    case 'SET_NEWS':
+      return { ...state, news: action.payload }
+    case 'SET_CRITICAL_NEWS':
+      return { ...state, criticalNews: action.payload }
+    case 'SET_SELECTED_SERVER':
+      return { ...state, selectedServerId: action.payload }
+    case 'SET_UPDATE_INFO':
+      return { ...state, ...action.payload }
+    case 'HIDE_UPDATE':
+      return { ...state, updateVisible: false, updatePercent: 0, updateMessage: '' }
+    case 'SET_LAST_TOAST':
+      return { ...state, lastToastMessage: action.payload }
+    case 'DOWNLOAD_COMPLETE':
+      return {
+        ...state,
+        progress: 100,
+        fileProgress: 100,
+        launcherState: 'ready',
+        modsStatus: 'synced'
+      }
+    default:
+      return state
+  }
+}
 
 function App() {
-  const [state, setState] = useState<LauncherState>('idle')
-  const [activeTab, setActiveTab] = useState<TabType>('home')
-  const [arma3Path, setArma3Path] = useState<string | null>(null)
-  const [progress, setProgress] = useState<number>(0)
-  const [fileProgress, setFileProgress] = useState<number>(0)
-  const [fileName, setFileName] = useState<string>('')
-  const [eta, setEta] = useState<string>('')
-  const [modsStatus, setModsStatus] = useState<'synced' | 'outdated' | 'downloading'>('synced')
-  const [playerCount, setPlayerCount] = useState<number>(0)
-  const [maxPlayers, setMaxPlayers] = useState<number>(config.servers[0].maxSlots)
-  const [serverStatus, setServerStatus] = useState<'online' | 'offline'>('offline')
-  const [serverName, setServerName] = useState<string>(config.servers[0].name)
-  const [serverMap, setServerMap] = useState<string>('')
-  const [serverPing, setServerPing] = useState<number>(0)
-  const [serverFps, setServerFps] = useState<number>(0)
-  const [serverUptime, setServerUptime] = useState<string>('0:00:00')
-  const [hasRconData, setHasRconData] = useState<boolean>(false)
-  const [news, setNews] = useState<any[]>([])
-  const [criticalNews, setCriticalNews] = useState<any[]>([])
-  const [lastToastMessage, setLastToastMessage] = useState<string>('')
+  // État centralisé avec useReducer (optimisé)
+  const [state, dispatch] = useReducer(appReducer, initialState)
 
-  // État pour la gestion multi-serveurs
-  const [selectedServerId, setSelectedServerId] = useState<string>(
-    config.servers.find(s => s.isDefault)?.id || config.servers[0]?.id || ''
+  // Destructuration pour faciliter l'accès
+  const {
+    launcherState, activeTab, arma3Path, progress, fileProgress, fileName, eta,
+    modsStatus, modsChecked, playerCount, maxPlayers, serverStatus, serverName, serverMap,
+    serverPing, serverFps, serverUptime, hasRconData, news, criticalNews,
+    selectedServerId, updateVisible, updateMessage, updatePercent, updateSpeed,
+    updateTransferred, updateTotal, lastToastMessage
+  } = state
+
+  // Serveur sélectionné (mémorisé)
+  const selectedServer = useMemo(
+    () => config.servers.find(s => s.id === selectedServerId) || config.servers[0],
+    [selectedServerId]
   )
-  const selectedServer = config.servers.find(s => s.id === selectedServerId) || config.servers[0]
-
-  // Mise à jour autoUpdater
-  const [updateVisible, setUpdateVisible] = useState<boolean>(false)
-  const [updateMessage, setUpdateMessage] = useState<string>('')
-  const [updatePercent, setUpdatePercent] = useState<number>(0)
-  const [updateSpeed, setUpdateSpeed] = useState<number>(0)
-  const [updateTransferred, setUpdateTransferred] = useState<number>(0)
-  const [updateTotal, setUpdateTotal] = useState<number>(0)
 
   useEffect(() => {
     const handleMessage = (_e: any, payload: any) => {
-      const { message, success, error, data, fileProgress, timeRemaining } = payload
-      const toastKey = `${message}-${success || error || ''}`
+      const { message, success, error, data, fileProgress: fileProg, timeRemaining } = payload
 
+      // Les messages de progression ne doivent pas être filtrés par la déduplication
+      if (message === 'download-progress') {
+        dispatch({
+          type: 'SET_DOWNLOAD_PROGRESS',
+          payload: {
+            progress: Number(success || 0),
+            fileProgress: Number(fileProg || 0),
+            fileName: String(data || ''),
+            eta: String(timeRemaining || '')
+          }
+        })
+        return
+      }
+
+      const toastKey = `${message}-${success || error || ''}`
       if (lastToastMessage === toastKey) return
 
       if (message === 'arma3Path-ready' || message === 'arma3Path-mod-loaded') {
-        setState('ready')
-        setLastToastMessage(toastKey)
-        setTimeout(() => setLastToastMessage(''), 1000)
+        dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'ready' })
+        dispatch({ type: 'SET_LAST_TOAST', payload: toastKey })
+        setTimeout(() => dispatch({ type: 'SET_LAST_TOAST', payload: '' }), 1000)
       }
       if (message === 'arma3Path-not-loaded' || message === 'arma3Path-invalid') {
-        setState('idle')
-        setLastToastMessage(toastKey)
+        dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'idle' })
+        dispatch({ type: 'SET_LAST_TOAST', payload: toastKey })
         toast.error('❌ ' + (error || 'Chemin invalide'), { id: 'arma3-error' })
-        setTimeout(() => setLastToastMessage(''), 1000)
+        setTimeout(() => dispatch({ type: 'SET_LAST_TOAST', payload: '' }), 1000)
       }
       if (message === 'updateMod-needed') {
-        setState('ready')
-        setModsStatus('outdated')
+        dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'ready' })
+        dispatch({ type: 'SET_MODS_STATUS', payload: 'outdated' })
+        dispatch({ type: 'SET_MODS_CHECKED', payload: true }) // Vérification terminée
         if (lastToastMessage !== toastKey) {
-          setLastToastMessage(toastKey)
+          dispatch({ type: 'SET_LAST_TOAST', payload: toastKey })
           toast('📦 Mods à synchroniser', { id: 'mods-update' })
-          setTimeout(() => setLastToastMessage(''), 1000)
+          setTimeout(() => dispatch({ type: 'SET_LAST_TOAST', payload: '' }), 1000)
         }
       }
       if (message === 'mods-check-complete') {
-        setState('ready')
-        setModsStatus('synced')
+        dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'ready' })
+        dispatch({ type: 'SET_MODS_STATUS', payload: 'synced' })
+        dispatch({ type: 'SET_MODS_CHECKED', payload: true }) // Vérification terminée
         // Ne reset que si on n'est pas en train de télécharger
-        if (state !== 'downloading') {
-          setProgress(0)
-          setFileProgress(0)
-          setFileName('')
-          setEta('')
+        if (launcherState !== 'downloading') {
+          dispatch({ type: 'RESET_DOWNLOAD_PROGRESS' })
         }
 
         if (lastToastMessage !== toastKey) {
-          setLastToastMessage(toastKey)
-          setTimeout(() => setLastToastMessage(''), 1000)
+          dispatch({ type: 'SET_LAST_TOAST', payload: toastKey })
+          setTimeout(() => dispatch({ type: 'SET_LAST_TOAST', payload: '' }), 1000)
         }
       }
       if (message === 'cleanup-start') {
-        setState('downloading')
-        setModsStatus('downloading')
+        dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'downloading' })
+        dispatch({ type: 'SET_MODS_STATUS', payload: 'downloading' })
         if (lastToastMessage !== toastKey) {
-          setLastToastMessage(toastKey)
+          dispatch({ type: 'SET_LAST_TOAST', payload: toastKey })
           toast.loading('🗑️ ' + (success || 'Nettoyage en cours...'), { id: 'cleanup' })
-          setTimeout(() => setLastToastMessage(''), 1000)
+          setTimeout(() => dispatch({ type: 'SET_LAST_TOAST', payload: '' }), 1000)
         }
       }
       if (message === 'cleanup-complete') {
         if (lastToastMessage !== toastKey) {
-          setLastToastMessage(toastKey)
+          dispatch({ type: 'SET_LAST_TOAST', payload: toastKey })
           toast.success('✅ ' + (success || 'Nettoyage terminé'), { id: 'cleanup' })
-          setTimeout(() => setLastToastMessage(''), 1000)
+          setTimeout(() => dispatch({ type: 'SET_LAST_TOAST', payload: '' }), 1000)
         }
       }
       if (message === 'download-start') {
-        setState('downloading')
-        setModsStatus('downloading')
-      }
-      if (message === 'download-progress') {
-        setProgress(Number(success || 0))
-        setFileProgress(Number(fileProgress || 0))
-        setFileName(String(data || ''))
-        setEta(String(timeRemaining || ''))
+        dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'downloading' })
+        dispatch({ type: 'SET_MODS_STATUS', payload: 'downloading' })
       }
       if (message === 'download-complete') {
-        // Forcer 100% avant de reset
-        setProgress(100)
-        setFileProgress(100)
-
-        setState('ready')
-        setModsStatus('synced')
+        dispatch({ type: 'DOWNLOAD_COMPLETE' })
+        dispatch({ type: 'SET_MODS_CHECKED', payload: true }) // Mods maintenant vérifiés et synced
 
         // Reset des barres de progression après un délai pour voir la completion
         setTimeout(() => {
-          setProgress(0)
-          setFileProgress(0)
-          setFileName('')
-          setEta('')
-        }, 3000) // 3 secondes pour voir 100% puis disparition
+          dispatch({ type: 'RESET_DOWNLOAD_PROGRESS' })
+        }, 3000)
 
         if (lastToastMessage !== toastKey) {
-          setLastToastMessage(toastKey)
+          dispatch({ type: 'SET_LAST_TOAST', payload: toastKey })
           toast.success('✅ Mods synchronisés avec succès', { id: 'download-complete' })
-          setTimeout(() => setLastToastMessage(''), 1000)
+          setTimeout(() => dispatch({ type: 'SET_LAST_TOAST', payload: '' }), 1000)
         }
       }
       if (message === 'download-error') {
-        setState('ready')
-        setModsStatus('outdated')
-        // Reset des barres de progression en cas d'erreur
-        setProgress(0)
-        setFileProgress(0)
-        setFileName('')
-        setEta('')
+        dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'ready' })
+        dispatch({ type: 'SET_MODS_STATUS', payload: 'outdated' })
+        dispatch({ type: 'RESET_DOWNLOAD_PROGRESS' })
 
         if (lastToastMessage !== toastKey) {
-          setLastToastMessage(toastKey)
+          dispatch({ type: 'SET_LAST_TOAST', payload: toastKey })
           toast.error('❌ ' + (error || 'Erreur de téléchargement'), { id: 'download-error' })
-          setTimeout(() => setLastToastMessage(''), 1000)
+          setTimeout(() => dispatch({ type: 'SET_LAST_TOAST', payload: '' }), 1000)
         }
       }
       if (message === 'tfar-install-start') {
@@ -159,9 +296,9 @@ function App() {
       }
       if (message === 'launch-game-success') {
         if (lastToastMessage !== toastKey) {
-          setLastToastMessage(toastKey)
+          dispatch({ type: 'SET_LAST_TOAST', payload: toastKey })
           toast.success('🚀 Jeu lancé avec succès !', { id: 'game-launch' })
-          setTimeout(() => setLastToastMessage(''), 1000)
+          setTimeout(() => dispatch({ type: 'SET_LAST_TOAST', payload: '' }), 1000)
         }
       }
       if (message === 'server-info-update') {
@@ -169,31 +306,26 @@ function App() {
           const defaultServer = config.servers.find(s => s.isDefault) || config.servers[0]
           const serverInfo = JSON.parse(data || '{}')
           if (serverInfo && serverInfo.isOnline) {
-            setHasRconData(true)
-            setPlayerCount(serverInfo.playerCount || 0)
-            setMaxPlayers(serverInfo.maxPlayers || defaultServer.maxSlots)
-            setServerStatus('online')
-            setServerName(serverInfo.serverName || defaultServer.name)
-            setServerMap(serverInfo.map || 'Unknown')
-            setServerPing(serverInfo.ping || 0)
-            setServerFps(serverInfo.fps || 0)
-            setServerUptime(serverInfo.uptime || '0:00:00')
+            dispatch({
+              type: 'SET_SERVER_INFO',
+              payload: {
+                hasRconData: true,
+                playerCount: serverInfo.playerCount || 0,
+                maxPlayers: serverInfo.maxPlayers || defaultServer.maxSlots,
+                serverStatus: 'online',
+                serverName: serverInfo.serverName || defaultServer.name,
+                serverMap: serverInfo.map || 'Unknown',
+                serverPing: serverInfo.ping || 0,
+                serverFps: serverInfo.fps || 0,
+                serverUptime: serverInfo.uptime || '0:00:00'
+              }
+            })
           } else {
-            // Serveur hors ligne - pas d'infos fantômes
-            setHasRconData(false)
-            setServerStatus('offline')
-            setPlayerCount(0)
-            setServerPing(0)
-            setServerFps(0)
-            setServerUptime('0:00:00')
+            dispatch({ type: 'SET_SERVER_OFFLINE' })
           }
-        } catch (error) {
-          console.error('Erreur parsing server info:', error)
-          setHasRconData(false)
-          setServerStatus('offline')
-          setPlayerCount(0)
-          setServerPing(0)
-          setServerFps(0)
+        } catch (err) {
+          console.error('Erreur parsing server info:', err)
+          dispatch({ type: 'SET_SERVER_OFFLINE' })
         }
       }
     }
@@ -202,121 +334,140 @@ function App() {
 
     window.ipcRenderer.invoke('get-arma3-path').then((path) => {
       if (path) {
-        setArma3Path(path)
-        setState('ready')
+        dispatch({ type: 'SET_ARMA3_PATH', payload: path })
+        // Lancer la vérification des mods en premier
+        window.ipcRenderer.send('check-mods')
+      } else {
+        // Pas de chemin Arma3, on passe en idle
+        dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'idle' })
+        dispatch({ type: 'SET_MODS_CHECKED', payload: true })
       }
     })
 
     // Récupérer les infos serveur au démarrage
     window.ipcRenderer.invoke('get-server-info').then((serverInfo) => {
       if (serverInfo && serverInfo.isOnline) {
-        setHasRconData(true)
-        setPlayerCount(serverInfo.playerCount || 0)
-        setMaxPlayers(serverInfo.maxPlayers || config.servers[0].maxSlots)
-        setServerStatus('online')
-        setServerName(serverInfo.serverName || config.servers[0].name)
-        setServerMap(serverInfo.map || '')
-        setServerPing(serverInfo.ping || 0)
-        setServerFps(serverInfo.fps || 0)
-        setServerUptime(serverInfo.uptime || '0:00:00')
+        dispatch({
+          type: 'SET_SERVER_INFO',
+          payload: {
+            hasRconData: true,
+            playerCount: serverInfo.playerCount || 0,
+            maxPlayers: serverInfo.maxPlayers || config.servers[0].maxSlots,
+            serverStatus: 'online',
+            serverName: serverInfo.serverName || config.servers[0].name,
+            serverMap: serverInfo.map || '',
+            serverPing: serverInfo.ping || 0,
+            serverFps: serverInfo.fps || 0,
+            serverUptime: serverInfo.uptime || '0:00:00'
+          }
+        })
       } else {
-        // Pas d'infos disponibles = serveur hors ligne
-        setHasRconData(false)
-        setServerStatus('offline')
-        setPlayerCount(0)
-        setServerPing(0)
-        setServerFps(0)
-        setServerName(config.servers[0].name) // Garder le nom de config
-        setServerMap('') // Garder la map de config
+        dispatch({
+          type: 'SET_SERVER_INFO',
+          payload: {
+            hasRconData: false,
+            serverStatus: 'offline',
+            playerCount: 0,
+            serverPing: 0,
+            serverFps: 0,
+            serverName: config.servers[0].name,
+            serverMap: ''
+          }
+        })
       }
     })
 
     // Récupérer les actualités
     window.ipcRenderer.invoke('get-news').then((newsItems) => {
       if (newsItems) {
-        setNews(newsItems)
+        dispatch({ type: 'SET_NEWS', payload: newsItems })
       }
     })
 
     // Récupérer les actualités critiques
     window.ipcRenderer.invoke('get-critical-news').then((criticalItems) => {
       if (criticalItems) {
-        setCriticalNews(criticalItems)
+        dispatch({ type: 'SET_CRITICAL_NEWS', payload: criticalItems })
       }
     })
 
     return () => {
       window.ipcRenderer.off('main-process-message', handleMessage)
     }
-  }, [lastToastMessage])
+  }, [lastToastMessage, launcherState])
 
   // Auto-refresh du statut serveur toutes les 30 secondes
   useEffect(() => {
     const interval = setInterval(() => {
       // Seulement si on n'est pas en train de télécharger ou autre
-      if (state === 'ready' || state === 'idle') {
+      if (launcherState === 'ready' || launcherState === 'idle') {
         window.ipcRenderer.invoke('get-server-info').then((serverInfo) => {
           if (serverInfo && serverInfo.isOnline) {
-            setHasRconData(true)
-            setPlayerCount(serverInfo.playerCount || 0)
-            setMaxPlayers(serverInfo.maxPlayers || config.servers[0].maxSlots)
-            setServerStatus('online')
-            setServerName(serverInfo.serverName || config.servers[0].name)
-            setServerMap(serverInfo.map || '')
-            setServerPing(serverInfo.ping || 0)
-            setServerFps(serverInfo.fps || 0)
-            setServerUptime(serverInfo.uptime || '0:00:00')
+            dispatch({
+              type: 'SET_SERVER_INFO',
+              payload: {
+                hasRconData: true,
+                playerCount: serverInfo.playerCount || 0,
+                maxPlayers: serverInfo.maxPlayers || config.servers[0].maxSlots,
+                serverStatus: 'online',
+                serverName: serverInfo.serverName || config.servers[0].name,
+                serverMap: serverInfo.map || '',
+                serverPing: serverInfo.ping || 0,
+                serverFps: serverInfo.fps || 0,
+                serverUptime: serverInfo.uptime || '0:00:00'
+              }
+            })
           } else {
-            setHasRconData(false)
-            setServerStatus('offline')
-            setPlayerCount(0)
-            setServerPing(0)
-            setServerFps(0)
-            setServerName(config.servers[0].name)
-            setServerMap('')
+            dispatch({
+              type: 'SET_SERVER_INFO',
+              payload: {
+                hasRconData: false,
+                serverStatus: 'offline',
+                playerCount: 0,
+                serverPing: 0,
+                serverFps: 0,
+                serverName: config.servers[0].name,
+                serverMap: ''
+              }
+            })
           }
         })
       }
     }, 30000) // 30 secondes
 
     return () => clearInterval(interval)
-  }, [state])
+  }, [launcherState])
 
   // Événements d'auto‑mise à jour
   useEffect(() => {
     const onChecking = () => {
-      setUpdateVisible(true)
-      setUpdateMessage('Recherche de mise à jour...')
-      setUpdatePercent(0)
+      dispatch({ type: 'SET_UPDATE_INFO', payload: { updateVisible: true, updateMessage: 'Recherche de mise à jour...', updatePercent: 0 } })
     }
     const onAvailable = () => {
-      setUpdateVisible(true)
-      setUpdateMessage('Mise à jour disponible — téléchargement en cours...')
+      dispatch({ type: 'SET_UPDATE_INFO', payload: { updateVisible: true, updateMessage: 'Mise à jour disponible — téléchargement en cours...' } })
     }
     const onProgress = (_e: any, data: { percent: number; transferred: number; total: number; bytesPerSecond: number }) => {
-      const percent = Math.round(Number(data?.percent || 0))
-      setUpdatePercent(percent)
-      setUpdateTransferred(Number(data?.transferred || 0))
-      setUpdateTotal(Number(data?.total || 0))
-      setUpdateSpeed(Number(data?.bytesPerSecond || 0))
-      setUpdateVisible(true)
-      setUpdateMessage('Téléchargement de la mise à jour...')
+      dispatch({
+        type: 'SET_UPDATE_INFO',
+        payload: {
+          updatePercent: Math.round(Number(data?.percent || 0)),
+          updateTransferred: Number(data?.transferred || 0),
+          updateTotal: Number(data?.total || 0),
+          updateSpeed: Number(data?.bytesPerSecond || 0),
+          updateVisible: true,
+          updateMessage: 'Téléchargement de la mise à jour...'
+        }
+      })
     }
     const onReady = () => {
-      setUpdateVisible(true)
-      setUpdatePercent(100)
-      setUpdateMessage('Mise à jour téléchargée — redémarrage imminent...')
+      dispatch({ type: 'SET_UPDATE_INFO', payload: { updateVisible: true, updatePercent: 100, updateMessage: 'Mise à jour téléchargée — redémarrage imminent...' } })
     }
     const onNotAvailable = () => {
-      setUpdateVisible(false)
-      setUpdatePercent(0)
-      setUpdateMessage('')
+      dispatch({ type: 'HIDE_UPDATE' })
     }
     const onError = (_e: any, msg?: string) => {
       toast.error('❌ ' + (msg || 'Erreur de mise à jour'))
-      setUpdateVisible(false)
-      setUpdatePercent(0)
-      setUpdateMessage('')
+      dispatch({ type: 'HIDE_UPDATE' })
     }
 
     window.ipcRenderer.on('checking-update', onChecking)
@@ -336,68 +487,80 @@ function App() {
     }
   }, [])
 
-  const handleLocate = async () => {
-    setState('locating')
+  const handleLocate = useCallback(async () => {
+    dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'locating' })
     window.ipcRenderer.send('locate-arma3')
     const path = await window.ipcRenderer.invoke('get-arma3-path')
-    setArma3Path(path)
-  }
+    dispatch({ type: 'SET_ARMA3_PATH', payload: path })
+  }, [])
 
-  const handleDownload = () => {
-    setState('downloading')
-    setProgress(0)
-    setFileProgress(0)
+  const handleDownload = useCallback(() => {
+    dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'downloading' })
+    dispatch({ type: 'SET_MODS_STATUS', payload: 'downloading' }) // Bloquer immédiatement le bouton
+    dispatch({ type: 'RESET_DOWNLOAD_PROGRESS' })
     window.ipcRenderer.send('download-mods')
-  }
+  }, [])
 
-  const handleRefresh = () => {
-    setState('checking')
+  const handleRefresh = useCallback(() => {
+    dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'checking' })
     // Ne pas changer le modsStatus pendant la vérification pour éviter le clignotement
     window.ipcRenderer.send('check-mods')
-  }
+  }, [])
 
-  const handleRefreshServerStatus = () => {
-    setState('checking')
+  const handleRefreshServerStatus = useCallback(() => {
+    dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'checking' })
     // Relancer la vérification du serveur et des mods
     window.ipcRenderer.invoke('get-server-info').then((serverInfo) => {
       if (serverInfo && serverInfo.isOnline) {
-        setHasRconData(true)
-        setPlayerCount(serverInfo.playerCount || 0)
-        setMaxPlayers(serverInfo.maxPlayers || config.servers[0].maxSlots)
-        setServerStatus('online')
-        setServerName(serverInfo.serverName || config.servers[0].name)
-        setServerMap(serverInfo.map || '')
-        setServerPing(serverInfo.ping || 0)
-        setServerFps(serverInfo.fps || 0)
-        setServerUptime(serverInfo.uptime || '0:00:00')
+        dispatch({
+          type: 'SET_SERVER_INFO',
+          payload: {
+            hasRconData: true,
+            playerCount: serverInfo.playerCount || 0,
+            maxPlayers: serverInfo.maxPlayers || config.servers[0].maxSlots,
+            serverStatus: 'online',
+            serverName: serverInfo.serverName || config.servers[0].name,
+            serverMap: serverInfo.map || '',
+            serverPing: serverInfo.ping || 0,
+            serverFps: serverInfo.fps || 0,
+            serverUptime: serverInfo.uptime || '0:00:00'
+          }
+        })
       } else {
-        setHasRconData(false)
-        setServerStatus('offline')
-        setPlayerCount(0)
-        setServerPing(0)
-        setServerFps(0)
-        setServerName(config.servers[0].name)
-        setServerMap('')
+        dispatch({
+          type: 'SET_SERVER_INFO',
+          payload: {
+            hasRconData: false,
+            serverStatus: 'offline',
+            playerCount: 0,
+            serverPing: 0,
+            serverFps: 0,
+            serverName: config.servers[0].name,
+            serverMap: ''
+          }
+        })
       }
-      setState('ready')
+      dispatch({ type: 'SET_LAUNCHER_STATE', payload: 'ready' })
     })
     // Vérifier aussi les mods
     window.ipcRenderer.send('check-mods')
-  }
+  }, [])
 
-  const handleLaunch = () => {
-    setState('launching')
-    window.ipcRenderer.invoke('launch-game')
-    setTimeout(() => setState('ready'), 2000)
-  }
-
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     window.ipcRenderer.send('close-app')
-  }
+  }, [])
 
-  const handleMinimize = () => {
+  const handleMinimize = useCallback(() => {
     window.ipcRenderer.send('minimize-app')
-  }
+  }, [])
+
+  const handleSelectServer = useCallback((serverId: string) => {
+    dispatch({ type: 'SET_SELECTED_SERVER', payload: serverId })
+  }, [])
+
+  const handleSetActiveTab = useCallback((tab: TabType) => {
+    dispatch({ type: 'SET_ACTIVE_TAB', payload: tab })
+  }, [])
 
 
 
@@ -512,7 +675,7 @@ function App() {
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
-                  onClick={() => setActiveTab(id as TabType)}
+                  onClick={() => handleSetActiveTab(id as TabType)}
                   className={`nav-tab flex-shrink-0 ${activeTab === id ? 'active' : ''}`}
                 >
                   <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -555,13 +718,15 @@ function App() {
             serverUptime={serverUptime}
             hasRconData={hasRconData}
             modsStatus={modsStatus}
-            state={state}
+            modsChecked={modsChecked}
+            state={launcherState}
             selectedServer={selectedServer}
             servers={config.servers}
             selectedServerId={selectedServerId}
-            onSelectServer={setSelectedServerId}
+            onSelectServer={handleSelectServer}
             onConnect={() => window.ipcRenderer.invoke('connect-server', selectedServerId)}
             onRefreshStatus={handleRefreshServerStatus}
+            onDownload={handleDownload}
           />}
           {activeTab === 'news' && <NewsTab
             news={news}
@@ -570,7 +735,7 @@ function App() {
           {activeTab === 'servers' && <ServersTab
             servers={config.servers}
             selectedServerId={selectedServerId}
-            onSelectServer={setSelectedServerId}
+            onSelectServer={handleSelectServer}
             serverStatus={serverStatus}
             playerCount={playerCount}
             serverPing={serverPing}
@@ -578,7 +743,7 @@ function App() {
             onConnect={() => window.ipcRenderer.invoke('connect-server', selectedServerId)}
           />}
           {activeTab === 'mods' && <ModsTab
-            state={state}
+            state={launcherState}
             progress={progress}
             fileProgress={fileProgress}
             fileName={fileName}
@@ -591,25 +756,64 @@ function App() {
           {activeTab === 'settings' && <SettingsTab
             arma3Path={arma3Path}
             onLocate={handleLocate}
-            onLaunch={handleLaunch}
-            state={state}
+            state={launcherState}
           />}
         </div>
+
+        {/* Barre de progression persistante en bas - visible pendant les téléchargements */}
+        {(launcherState === 'downloading' || modsStatus === 'downloading' || (progress > 0 && progress < 100)) && activeTab !== 'mods' && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-md border-t border-orange-600/30 shadow-lg">
+            <div className="max-w-7xl mx-auto px-4 py-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <Download className="w-5 h-5 text-orange-400 animate-bounce flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-gray-200 truncate">
+                        {fileName || 'Synchronisation des mods...'}
+                      </span>
+                      <span className="text-sm font-mono text-orange-300 ml-2">{progress}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {eta && (
+                  <div className="text-xs text-gray-400 flex-shrink-0">
+                    <Clock className="w-3 h-3 inline mr-1" />
+                    {eta}
+                  </div>
+                )}
+                <button
+                  onClick={() => handleSetActiveTab('mods')}
+                  className="text-xs text-orange-300 hover:text-orange-200 underline flex-shrink-0"
+                >
+                  Voir détails
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-// Composant Onglet Accueil
-function HomeTab({
+// Composant Onglet Accueil (mémorisé pour éviter les re-renders)
+const HomeTab = memo(function HomeTab({
   serverStatus,
   playerCount,
   maxPlayers,
   modsStatus,
+  modsChecked,
   state,
-  selectedServer,
   onConnect,
-  onRefreshStatus
+  onRefreshStatus,
+  onDownload
 }: {
   arma3Path: string | null
   serverStatus: string
@@ -622,6 +826,7 @@ function HomeTab({
   serverUptime: string
   hasRconData: boolean
   modsStatus: 'synced' | 'outdated' | 'downloading'
+  modsChecked: boolean
   state: LauncherState
   selectedServer: any
   servers: any[]
@@ -629,6 +834,7 @@ function HomeTab({
   onSelectServer: (serverId: string) => void
   onConnect: () => void
   onRefreshStatus: () => void
+  onDownload: () => void
 }) {
   return (
     <div className="space-y-4">
@@ -687,9 +893,37 @@ function HomeTab({
               </span>
             </div>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons - Logique améliorée */}
             <div className="flex flex-wrap justify-center gap-2">
-              {serverStatus === 'online' && modsStatus === 'synced' ? (
+              {/* État 1: Vérification en cours (pas encore vérifié) */}
+              {!modsChecked || state === 'checking' ? (
+                <button
+                  disabled
+                  className="btn-join hero-cta-primary opacity-70 cursor-wait"
+                >
+                  <Clock className="w-5 h-5 animate-spin" />
+                  <span>Vérification des mods...</span>
+                </button>
+              ) : /* État 2: Téléchargement en cours */
+              state === 'downloading' || modsStatus === 'downloading' ? (
+                <button
+                  disabled
+                  className="btn-join hero-cta-primary opacity-70 cursor-wait"
+                >
+                  <Download className="w-5 h-5 animate-bounce" />
+                  <span>Téléchargement en cours...</span>
+                </button>
+              ) : /* État 3: Mods à jour requis */
+              modsStatus === 'outdated' ? (
+                <button
+                  onClick={onDownload}
+                  className="btn-join hero-cta-primary bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500"
+                >
+                  <Download className="w-5 h-5" />
+                  <span>Synchroniser les mods</span>
+                </button>
+              ) : /* État 4: Prêt à rejoindre */
+              serverStatus === 'online' && modsStatus === 'synced' ? (
                 <button
                   onClick={onConnect}
                   className="btn-join hero-cta-primary"
@@ -697,13 +931,14 @@ function HomeTab({
                   <Play className="w-5 h-5" />
                   <span>Rejoindre le serveur</span>
                 </button>
-              ) : (
+              ) : /* État 5: Serveur hors ligne ou autre */
+              (
                 <button
                   onClick={onRefreshStatus}
                   className="btn-join hero-cta-primary"
                 >
-                  <Clock className={`w-5 h-5 ${state === 'checking' ? 'animate-spin' : 'animate-pulse'}`} />
-                  <span>{state === 'checking' ? 'Vérification...' : 'Actualiser le statut'}</span>
+                  <Clock className="w-5 h-5 animate-pulse" />
+                  <span>Actualiser le statut</span>
                 </button>
               )}
             </div>
@@ -719,10 +954,10 @@ function HomeTab({
       </div>
     </div>
   )
-}
+})
 
-// Composant Onglet Actualités
-function NewsTab({
+// Composant Onglet Actualités (mémorisé)
+const NewsTab = memo(function NewsTab({
   news,
   criticalNews
 }: {
@@ -826,10 +1061,10 @@ function NewsTab({
       </div>
     </div>
   )
-}
+})
 
-// Composant Onglet Serveurs
-function ServersTab({
+// Composant Onglet Serveurs (mémorisé)
+const ServersTab = memo(function ServersTab({
   servers,
   selectedServerId,
   onSelectServer,
@@ -971,10 +1206,10 @@ function ServersTab({
 
     </div>
   )
-}
+})
 
-// Composant Onglet Mods
-function ModsTab({ state, progress, fileProgress, fileName, eta, modsStatus, onDownload, onRefresh }: {
+// Composant Onglet Mods (mémorisé)
+const ModsTab = memo(function ModsTab({ state, progress, fileProgress, fileName, eta, modsStatus, onDownload, onRefresh }: {
   state: LauncherState
   progress: number
   fileProgress: number
@@ -1021,27 +1256,38 @@ function ModsTab({ state, progress, fileProgress, fileName, eta, modsStatus, onD
               </div>
               <button
                 onClick={onRefresh}
-                disabled={state === 'downloading' || state === 'checking'}
-                className="btn-secondary shrink-0"
+                disabled={state === 'downloading' || state === 'checking' || modsStatus === 'downloading'}
+                className={`btn-secondary shrink-0 ${(state === 'downloading' || modsStatus === 'downloading') ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Vérifier les mises à jour"
               >
                 <CheckCircle className={`w-5 h-5 ${state === 'checking' ? 'animate-spin' : ''}`} />
                 <span>{state === 'checking' ? 'Vérification...' : 'Vérifier'}</span>
               </button>
 
-              {modsStatus === 'synced' || (state === 'checking' && modsStatus !== 'outdated') ? (
+              {/* État: Synchronisé */}
+              {modsStatus === 'synced' && state !== 'downloading' && (
                 <div className="shrink-0 flex items-center space-x-2 px-4 py-2 bg-green-900/20 text-green-400 border border-green-600/30 rounded-lg">
                   <CheckCircle className={`w-5 h-5 ${state === 'checking' ? 'animate-pulse' : ''}`} />
                   <span className="font-medium">{state === 'checking' ? 'Vérification...' : 'À jour'}</span>
                 </div>
-              ) : (
+              )}
+
+              {/* État: Téléchargement en cours */}
+              {(state === 'downloading' || modsStatus === 'downloading') && (
+                <div className="shrink-0 flex items-center space-x-2 px-4 py-2 bg-blue-900/20 text-blue-400 border border-blue-600/30 rounded-lg">
+                  <Download className="w-5 h-5 animate-bounce" />
+                  <span className="font-medium">Téléchargement...</span>
+                </div>
+              )}
+
+              {/* État: Mods à synchroniser */}
+              {modsStatus === 'outdated' && state !== 'downloading' && state !== 'checking' && (
                 <button
                   onClick={onDownload}
-                  disabled={state === 'downloading' || state === 'checking'}
                   className="btn-success shrink-0"
                 >
-                  <Download className={`w-5 h-5 ${state === 'downloading' ? 'animate-bounce' : ''}`} />
-                  <span>{state === 'downloading' ? 'Synchronisation...' : 'Synchroniser'}</span>
+                  <Download className="w-5 h-5" />
+                  <span>Synchroniser</span>
                 </button>
               )}
             </div>
@@ -1090,10 +1336,10 @@ function ModsTab({ state, progress, fileProgress, fileName, eta, modsStatus, onD
       </div>
     </div>
   )
-}
+})
 
-// Composant Onglet Liens Utiles
-function LinksTab() {
+// Composant Onglet Liens Utiles (mémorisé)
+const LinksTab = memo(function LinksTab() {
   // Configuration des couleurs par catégorie
   const categoryColors = {
     principal: 'from-blue-500/20 to-blue-600/20 border-blue-500/30',
@@ -1195,10 +1441,10 @@ function LinksTab() {
       </div>
     </div>
   )
-}
+})
 
-// Composant Onglet Paramètres
-function SettingsTab({ arma3Path, onLocate, state }: {
+// Composant Onglet Paramètres (mémorisé)
+const SettingsTab = memo(function SettingsTab({ arma3Path, onLocate, state }: {
   arma3Path: string | null
   onLocate: () => void
   state: LauncherState
@@ -1253,7 +1499,7 @@ function SettingsTab({ arma3Path, onLocate, state }: {
       </div>
     </div>
   )
-}
+})
 
 // Fonctions utilitaires pour les actualités
 function getNewsTypeEmoji(type: string): string {

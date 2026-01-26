@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,7 +30,17 @@ const OUTPUT_DIR = process.env.OUTPUT_DIR || path.join(__dirname, 'generated');
 const HASH_CACHE_FILE = path.join(OUTPUT_DIR, '.hash-cache.json');
 let previousHashes = {};
 
+// Cache mémoire pour les manifests (évite lectures disque répétées)
+const manifestCache = {
+  mods: null,
+  ressources: null,
+  news: null,
+  lastUpdate: 0
+};
+const CACHE_TTL = 5000; // 5 secondes
+
 // Middleware
+app.use(compression()); // Compression gzip des réponses
 app.use(cors());
 app.use(express.json());
 
@@ -159,7 +170,52 @@ app.post('/generate', async (req, res) => {
 app.post('/force-generate', async (req, res) => {
   try {
     await generateAll(true);
+    // Invalider le cache après génération
+    manifestCache.lastUpdate = 0;
     res.json({ message: 'Manifests forcés générés avec succès', timestamp: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoints pour servir les manifests avec cache mémoire
+app.get('/mods/manifest.json', async (req, res) => {
+  try {
+    const now = Date.now();
+    if (!manifestCache.mods || (now - manifestCache.lastUpdate) > CACHE_TTL) {
+      const manifestPath = path.join(OUTPUT_DIR, 'mods', 'manifest.json');
+      if (await fs.pathExists(manifestPath)) {
+        manifestCache.mods = await fs.readJson(manifestPath);
+        manifestCache.lastUpdate = now;
+      }
+    }
+    if (manifestCache.mods) {
+      res.set('Cache-Control', 'no-cache, must-revalidate');
+      res.json(manifestCache.mods);
+    } else {
+      res.status(404).json({ error: 'Manifest non trouvé' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/news/news.json', async (req, res) => {
+  try {
+    const now = Date.now();
+    if (!manifestCache.news || (now - manifestCache.lastUpdate) > CACHE_TTL) {
+      const newsPath = path.join(OUTPUT_DIR, 'news', 'news.json');
+      if (await fs.pathExists(newsPath)) {
+        manifestCache.news = await fs.readJson(newsPath);
+        manifestCache.lastUpdate = now;
+      }
+    }
+    if (manifestCache.news) {
+      res.set('Cache-Control', 'no-cache, must-revalidate');
+      res.json(manifestCache.news);
+    } else {
+      res.status(404).json({ error: 'News non trouvées' });
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -21,6 +21,8 @@ dist-ssr
 *.sln
 *.sw?
 .claude
+_bmad/
+_bmad-output/
 
 # Fichiers système
 Thumbs.db
