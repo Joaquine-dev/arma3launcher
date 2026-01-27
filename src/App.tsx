@@ -332,6 +332,14 @@ function App() {
 
     window.ipcRenderer.on('main-process-message', handleMessage)
 
+    return () => {
+      window.ipcRenderer.off('main-process-message', handleMessage)
+    }
+  }, [lastToastMessage, launcherState])
+
+  // Initialisation au démarrage (une seule fois)
+  useEffect(() => {
+    // Récupérer le chemin Arma3 et lancer la vérification des mods
     window.ipcRenderer.invoke('get-arma3-path').then((path) => {
       if (path) {
         dispatch({ type: 'SET_ARMA3_PATH', payload: path })
@@ -390,11 +398,7 @@ function App() {
         dispatch({ type: 'SET_CRITICAL_NEWS', payload: criticalItems })
       }
     })
-
-    return () => {
-      window.ipcRenderer.off('main-process-message', handleMessage)
-    }
-  }, [lastToastMessage, launcherState])
+  }, []) // Exécuté une seule fois au montage
 
   // Auto-refresh du statut serveur toutes les 30 secondes
   useEffect(() => {

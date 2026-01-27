@@ -155,9 +155,7 @@ export function setupIpcHandlers(win: BrowserWindow) {
       store.set("arma3Path", null);
       sendMessage(win, "arma3Path-not-loaded");
     }
-
-    // Vérification optimisée des mods
-    await checkModsWithManifest(win);
+    // Note: La vérification des mods est maintenant déclenchée par le frontend via 'check-mods'
   });
 
   // Gestionnaire de sélection manuelle du dossier Arma 3
